@@ -1,0 +1,1962 @@
+<!DOCTYPE HTML>
+<html lang = 'en'>
+    <head>
+        <title>Velmead Maths Challenge - Stages</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="loaders.css">
+        <meta name="viewport" content="width=device-width">
+
+        <script>
+            //does this as soon as the window loads
+            window.onload = (event) => {
+                    addClickListeners();
+                    let buttonMarkIt = document.getElementById("markIt");
+                    buttonMarkIt.disabled = true;
+                    let buttonGo = document.getElementById("goButton");
+                    buttonGo.disabled = true;
+                    changeLevel('bronze');                   
+            }
+            
+            //define variables with script-wide scope
+            let realAnswers;
+            let timerStart;
+            let timerEnd;
+            let correctAnswers
+            let colourRed = "#d10e00";
+            let colourGreen = "#43b516";
+            //let colourBronze = '#CD7F32';
+            //let colourSilver  = '#C0C0C0';
+            //let colourGold = '#D4AF37';
+            //let colourPlatinum = '#E5E4E2';
+
+            const timeLimit = [60, 60, 120, 120] // in seconds for Bronze, silver, gold, platinum respectively
+
+            const question_id = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10']
+            const userAnswer_id = ['inputAnswer1','inputAnswer2','inputAnswer3','inputAnswer4','inputAnswer5','inputAnswer6','inputAnswer7','inputAnswer8','inputAnswer9','inputAnswer10']
+            const mark_id = ['mark1','mark2','mark3','mark4','mark5','mark6','mark7','mark8','mark9','mark10']
+            let currentLevel //the level (bronze, silver, gold, platinum) currently selected.
+
+            // Bronze Award stages
+            let levelBronzeID = [101,102,103,104,105,106,107,108,109,110,
+                                111,112,113,114,115,116,117,118,119,120,
+                                121,122,123,124,125,126,127,128,129,130,131];
+
+            let levelBronzeText = ['1.    10s in order',
+                                    '2.    10s mixed',
+                                    '3.    10s division mixed',
+                                    '4.    5s in order',
+                                    '5.    5s mixed',
+                                    '6.    5s division mixed',
+                                    '7.    10s and 5s mixed',
+                                    '8.    2s in order',
+                                    '9.    2s mixed',
+                                    '10.  2s divison mixed',
+                                    '11.  4s in order',
+                                    '12.  4s mixed',
+                                    '13.  4s division mixed',
+                                    '14.  8s in order',
+                                    '15.  8s mixed',
+                                    '16.  8s division mixed',
+                                    '17.  2, 4, 8s mixed ',
+                                    '18.  3s in order',
+                                    '19.  3s mixed',
+                                    '20.  3s division',
+                                    '21.  6s in order',
+                                    '22.  6s mixed',
+                                    '23.  6s division mixed',
+                                    '24.  9s in order',
+                                    '25.  9s mixed',
+                                    '26.  9s division mixed',
+                                    '27.  3, 6, 9s mixed',
+                                    '28.  7s in order',
+                                    '29.  7s mixed',
+                                    '30.  7s division mixed',
+                                    '31.  2s - 10s mixed'];
+
+            // Silver Award Stages
+            let levelSilverID = [201,202,203,204,205,206,207,208,209,210,
+                                211,212,213,214,215,216,217,218,219,220,
+                                221,222,223,224,225,226,227,228,229,230];
+                                
+            let levelSilverText = ['1. 11s in order',
+                                    '2. 11s mixed',
+                                    '3. 11s division mixed',
+                                    '4. 12s in order',
+                                    '5. 12s mixed',
+                                    '6. 12s division mixed',
+                                    '7. 11s & 12s mixed (\u00D7 & \u00F7)',
+                                    '8. Square numbers',
+                                    '9.  Square roots',
+                                    '10. All tables  \u00D7',
+                                    '11. All tables  \u00F7',
+                                    '12. All tables  (\u00D7 & \u00F7)',
+                                    '13. U \u00D7 50',
+                                    '14. Multiples of 50 \u00F7 50',
+                                    '15. U \u00D7 20',
+                                    '16. Multiples of 20 \u00F7 20',
+                                    '17. U \u00D7 40',
+                                    '18. Multiples of 40 \u00F7 40',
+                                    '19. U \u00D7 80',
+                                    '20. Multiples of 80 \u00F7 80',
+                                    '21. U \u00D7 30',
+                                    '22. Multiples of 30 \u00F7 30',
+                                    '23. U \u00D7 60',
+                                    '24. Multiples of 60 \u00F7 60',
+                                    '25. U \u00D7 90',
+                                    '26. Multiples of 90 \u00F7 90',
+                                    '27. U \u00D7 70',
+                                    '28. Multiples of 70 \u00F7 70',
+                                    '29. 2 & 3 digit \u00D7 10 & 100',
+                                    '30. 2 & 3 digit \u00F7 10 & 100'];
+
+            // Gold Award Stages
+            let levelGoldID = [301,302,303,304,305,306,307,308,309,310,
+                                311,312,313,314,315,316,317,318,319,320,
+                                321,322,323,324,325,326,327,328,329,330];
+
+            let levelGoldText = ['1. Factors',
+                                '2. Double integers up to 100',
+                                '3. \u00BD evens up to 100',
+                                '4. \u00BD odds up to 50',
+                                '5. Double integers up to 200',
+                                '6. Double integers up to 500',
+                                '7. Unit fractions of amounts',
+                                '8. Fractions of amounts',
+                                '9. Double decimals \u003C 1 with 2dp',
+                                '10. \u00BD decimals \u003C 10 containing 10ths ',
+                                '11. Double decimals \u003C 25 with 2dp',
+                                '12. Double  multiples of 10 (\u003C1,000)',
+                                '13. \u00BD multiples of 10 (\u003C1,000)',
+                                '14. Double multiples of 10 (\u003C10,000)',
+                                '15. \u00BD multiples of 10 (\u003C10,000)',
+                                '16. Multiples of 10 squared',
+                                '17. 2 digit \u00D7 4',
+                                '18. 2 digit \u00F7 4',
+                                '19. 15 times tables ',
+                                '20. 16 times tables ',
+                                '21. 18 times tables ',
+                                '22. 14 times tables ',
+                                '23. 13 times tables ',
+                                '24. 19 times tables ',
+                                '25. 17 times tables ',
+                                '26. 2 digit \u00D7 by 4, 6, 8',
+                                '27. 2 digit \u00D7 by 3, 7, 9',
+                                '28. 2 digit num. \u003C 50 \u00D7 U',
+                                '29. Decimal \u003C 5 (1dp) \u00D7 U',
+                                '30. Decimal \u003C 10 (1dp) \u00D7 U'];
+
+            // Platinum Award Stages
+            let levelPlatinumID = [401,402,403,404,405,406,407,408,409,410,
+                                411,412,413,414,415,416,417,418,419,420,
+                                421,422,423,424,425,426,427,428,429,430];
+            
+            let levelPlatinumText = ['1. TU \u00D7 25',
+                                    '2. TU \u00D7 50',
+                                    '3. TU \u00D7 20',
+                                    '4. TU \u00D7 40',
+                                    '5. TU \u00D7 80',
+                                    '6. TU \u00D7 30',
+                                    '7. TU \u00D7 60',
+                                    '8. TU \u00D7 90',
+                                    '9. TU \u00D7 70',
+                                    '10. Doubling 5 dig. to 2 d.p. < 200',
+                                    '11. Halving 3 dig. odd nos. < 200',
+                                    '12. Halving 3 dig. odd nos. > 200',
+                                    '13. 5/ 6 dig. nos. to 2 d.p. \u00D7 U',
+                                    '14. Halving 5 dig. to 2 d.p. < 200',
+                                    '15. 6 dig. nos. to 3 d.p.\u00D7 U',
+                                    '16. Halving 5 dig.nos. to 1 d.p.',
+                                    '17. Doubling 5 dig. to 2 d.p. > 200',
+                                    '18. Halving 5 dig. to 2 d.p. > 200',
+                                    '19. 3 dig. nos. \u00F7 4',
+                                    '20. 4 dig. nos.  to 1 d.p. \u00F7 4',
+                                    '21. 4 dig. nos. < 10000 \u00F7 U',
+                                    '22. HTU \u00D7 TU ',
+                                    '23. 5 dig. to 2 d.p. \u00D7 3',
+                                    '24. 4/5 dig. nos. to 1 d.p. \u00F7 3',
+                                    '25. Factorials',
+                                    '26. mod (remainder after division)',
+                                    '27. 3 dig. nos. squared',
+                                    '28. 2 dig. nos. cubed',
+                                    '29. Cube roots (\u221B)',
+                                    '30. Percentge of decimals'];
+
+             //called when window loads
+            function addClickListeners() {
+                //go button click listener
+                let button = document.getElementById("goButton");
+                button.addEventListener("click", callback_goButton);
+                let markIt = document.getElementById("markIt");
+                markIt.addEventListener("click", callback_markIt);
+                let buttonBronze = document.getElementById("buttonBronze");
+                buttonBronze.addEventListener("click", callback_buttonBronze);
+                let buttonSilver = document.getElementById("buttonSilver");
+                buttonSilver.addEventListener("click", callback_buttonSilver);
+                let buttonGold = document.getElementById("buttonGold");
+                buttonGold.addEventListener("click", callback_buttonGold);
+                let buttonPlatinum = document.getElementById("buttonPlatinum");
+                buttonPlatinum.addEventListener("click", callback_buttonPlatinum);
+            }
+
+            function changeBorderWidth(levelIDNumber) {
+                let buttonIds = ['buttonBronze','buttonSilver','buttonGold','buttonPlatinum']
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(buttonIds[i]).style.borderWidth = '1px';
+                }
+                document.getElementById(buttonIds[levelIDNumber]).style.borderWidth = '3px';
+                //document.getElementById('dropdown-menu').focus();
+
+            }
+
+            function setAnswerInputState(state) {
+                // 'state' is expected to be either 'enabled' or 'disabled'
+                // used to disable the inputs when no questions are shown, and enable inputs when 
+                // the GO button is pressed.
+
+                for (let i = 0; i < 10; i++) {
+                    if (state == 'enabled') {
+                        document.getElementById(userAnswer_id[i]).disabled = false;
+                    } else if (state == 'disabled') {
+                        document.getElementById(userAnswer_id[i]).disabled = true;
+                    } 
+                }
+
+                if (getCurrentStage() == 430) {
+                    for (let i = 5; i < 10; i++) {
+                        document.getElementById(userAnswer_id[i]).disabled = true;
+                    }
+                }
+            }
+
+            function callback_buttonBronze () {
+                changeLevel('bronze')
+            }
+
+            function callback_buttonSilver () {
+                changeLevel('silver')
+            }
+
+            function callback_buttonGold () {
+                changeLevel('gold')
+            }
+
+            function callback_buttonPlatinum () {
+                changeLevel('platinum')
+            }
+
+            function changeLevel (newLevel) {
+                if (currentLevel == newLevel) {
+                    return; // no need to change anything
+                }              
+                // TODO:
+                // make newLevel button look pressed, and un-press the currentLevel
+                // probably best to have a funtion for this: setNewLevelButtonStates(newLevel)
+                // see https://dev.to/nicm42/multiple-buttons-looking-like-theyre-staying-pressed-one-at-a-time-4bbb
+
+                let levelID = [];
+                let levelText = [];
+
+                switch (newLevel) {
+                    case 'bronze':
+                        levelID = levelBronzeID;
+                        levelText = levelBronzeText;
+                        changeBorderWidth(0)
+                        break;
+
+                    case 'silver':
+                        levelID = levelSilverID;
+                        levelText = levelSilverText;
+                        changeBorderWidth(1)
+                        break;
+                    
+                    case 'gold':
+                        levelID = levelGoldID;
+                        levelText = levelGoldText;
+                        changeBorderWidth(2)
+                        break;
+
+                    case 'platinum':
+                        levelID = levelPlatinumID;
+                        levelText = levelPlatinumText;
+                        changeBorderWidth(3)
+                        break;
+
+                    default:
+                        levelID = levelBronzeID;
+                        levelText = levelBronzeText;
+                }
+                
+                let numStages = getCurrentStagesPerLevel(); // this is the current number of items in dropdown (less the Select Stage item)
+                let stagesDropDown = document.getElementById("dropdown-menu");
+                //Now remove the menu items one at a time until only the 'select stage' item remains
+                for (let i = 0; i < numStages; i++) {
+                    stagesDropDown.remove(1); // remove the menu item just after the 'select stage' text item
+                }
+
+                // From https://softauthor.com/javascript-dynamic-html-select-drop-down/
+                let listLength = levelID.length
+                // Fill up the dropdown with the value and text for each stage of the appropriate level
+                for (let i = 0; i < listLength; i++) {
+                    let option = document.createElement("option");
+                    option.setAttribute('value', levelID[i]);
+                    let optionText = document.createTextNode(levelText[i]);
+                    option.appendChild(optionText);
+                    stagesDropDown.appendChild(option);   
+                }
+
+                callback_changeStage() // This clears previous questions, answers, marks, time, score etc.       
+                currentLevel = newLevel;
+            }
+
+
+            // called when dropdown list selected item is changed
+            function callback_changeStage() {  
+
+                // Clear any previous questions, user answers and marks from the screen
+                for (let i = 0; i < 10; i++) {
+                    document.getElementById(question_id[i]).innerHTML  = "";
+                    document.getElementById(userAnswer_id[i]).value = "";
+                    document.getElementById(mark_id[i]).style.backgroundColor = "#cccccc";
+                }
+
+                // Disable user inputs
+                setAnswerInputState('disabled');
+
+                // Clear the time taken from previous go
+                document.getElementById('resultTime').innerHTML = ''
+                if (getCurrentStage() == 430) { // This is Platinum 30 with only 5 questions
+                    document.getElementById('resultScore').innerHTML = '/ 5'
+
+                } else {
+                    document.getElementById('resultScore').innerHTML = '/ 10'
+                }
+                
+                if (getCurrentStage() == "unselected") {
+                    let buttonMarkIt = document.getElementById("markIt");
+                    buttonMarkIt.disabled = true;
+                    let buttonGo = document.getElementById("goButton");
+                    buttonGo.disabled = true;
+                    // Disable user inputs (enable only when questions are shown)
+                    setAnswerInputState('disabled');
+                    return                   
+                } 
+
+                // Make 'GO!'' button active and set focus to the 'GO!' button, make 'Mark it' disabled 
+                let buttonMarkIt = document.getElementById("markIt");
+                buttonMarkIt.disabled = true;
+                let buttonGo = document.getElementById("goButton");
+                buttonGo.disabled = false;
+                buttonGo.focus()
+
+                
+            }
+
+            function callback_goButton() {
+
+                if (getCurrentStage() == "unselected") {
+                    return                    
+                } 
+
+                // Clear any previous questions, user answers and marks from the screen
+                for (let i = 0; i < 10; i++) {
+                    document.getElementById(question_id[i]).innerHTML  = "";
+                    document.getElementById(userAnswer_id[i]).value = "";
+                    document.getElementById(mark_id[i]).style.backgroundColor = "#cccccc";
+                }
+
+                // Make 'Mark It' button active
+                let buttonMarkIt = document.getElementById("markIt");
+                buttonMarkIt.disabled = false;
+
+                // Enable the user inputs
+                setAnswerInputState('enabled');
+
+                // Clear the time taken from previous go
+                document.getElementById('resultTime').innerHTML = '';
+                if (getCurrentStage() == 430) { // This is Platinum 30 with only 5 questions
+                    document.getElementById('resultScore').innerHTML = '/ 5'
+
+                } else {
+                    document.getElementById('resultScore').innerHTML = '/ 10'
+                }
+
+                // Get the question text and answers
+                let [num1_quest, symbol, num2_quest, ans] = getQuestions();
+                console.log(ans)
+                // Fill up the questions 
+                    for (let i = 0; i < 10; i++) {
+                        // Runs 10 times and changes element id then put in a question to be shown
+                        document.getElementById(question_id[i]).innerHTML = num1_quest[i] + ' ' + symbol[i] + ' ' + num2_quest[i];
+                    }
+
+                // Set focus to first answer input location
+                 document.getElementById(userAnswer_id[0]).focus();
+
+                // Start timer
+                timerStart = new Date();
+            }
+
+            // Returns what stage is selected
+            function getCurrentStage() {
+                let currentStage = document.getElementById("dropdown-menu").value;
+                return(currentStage)
+            }
+
+            function getCurrentStagesPerLevel() {
+                let stagesPerLevel
+                if (currentLevel == 'bronze') {
+                    stagesPerLevel = levelBronzeID.length;
+                } else if (currentLevel == 'silver') {
+                    stagesPerLevel = levelSilverID.length;
+                } else if (currentLevel == 'gold') {
+                    stagesPerLevel = levelGoldID.length;
+                } else if (currentLevel== 'platinum') {
+                    stagesPerLevel = levelPlatinumID.length;
+                } else {
+                    stagesPerLevel = 0;
+                }
+                return(stagesPerLevel)
+            }
+
+            function makeConfetti() {
+                // for starting the confetti 
+
+                const start = () => {
+                    setTimeout(function() {
+                        confetti.start()
+                    }, 0); // 1000 is time that after 1 second start the confetti ( 1000 = 1 sec)
+                };
+
+                //  for stopping the confetti 
+
+                const stop = () => {
+                    setTimeout(function() {
+                        confetti.stop()
+                    }, 5000); // 5000 is time that after 5 second stop the confetti ( 5000 = 5 sec)
+                };
+                        // after this here we are calling both the function so it works
+                    start();
+                    stop();
+                // if you dont want to make it stop and make it infinite you can just remove the stop function 😊
+
+            }
+
+
+            //sleep function
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }  
+
+            function callback_markIt() {
+                timerEnd = new Date();
+                setRandomLoader()
+                showLoader();
+                sleep(5000).then(() => { hideLoader(); });
+                sleep(5000).then(() => {
+                markTest();
+                })
+
+            }
+
+            function markTest() {
+                correctAnswers = 0
+                // Compare the true answers to the user answers, change box to red/green as appropriate
+                if (getCurrentStage() == 301) { // Do something specieal for the factors stage
+                    let results = [];
+                    for (let i = 0; i < 10; i++) { // for each question
+                        let userFactors = document.getElementById(userAnswer_id[i]).value; // get the users factor list
+                        userFactors = userFactors.split('.'); // and split at the . to get individual factor answers
+                        let factList = realAnswers[i]; // The list to check the user answers agaist
+                        let factRes = []; // 
+                        
+
+                        for (let n = 0; n < userFactors.length; n++) { 
+                            userFactor = parseInt(userFactors[n]);
+                            if (factList.includes(userFactor)) { //  its got to be in the answers list
+                                if (!(factRes.includes(userFactor))) // and not already used
+                                    //factList.push(userFactor)
+                                    factRes.push(userFactor)
+                            }  else {
+                                factRes = [] // one wrong answer 
+                                break;  // is a fail
+                            }
+                        }
+                        let res = (factRes.length >= 4); // 4 or more correct factors have been given
+                        results.push(res)
+                    
+                        // update the results box with red or green as appropriate
+                        if (results[i]) {
+                            document.getElementById(mark_id[i]).style.backgroundColor = colourGreen;
+                            correctAnswers = correctAnswers + 1 
+                        } else {
+                            document.getElementById(mark_id[i]).style.backgroundColor = colourRed;
+                        }
+
+                    }
+                } else { // Any other stage is more simple to mark:
+                    
+                    for (let i = 0; i < 10; i++) {
+                        if ((getCurrentStage() == 430) && (i > 4)) {
+                            // do nothing after question 5 as there are no questions beyond 5 for PLatinum 30
+
+                        } else if (document.getElementById(userAnswer_id[i]).value == realAnswers[i]) {
+                            document.getElementById(mark_id[i]).style.backgroundColor = colourGreen;
+                            correctAnswers = correctAnswers + 1 
+
+                        } else {
+                            document.getElementById(mark_id[i]).style.backgroundColor = colourRed;
+                        }
+                    }
+                }
+                
+                // Find and display the time taken 
+                let timeInSecs = Math.round((timerEnd.getTime()-timerStart.getTime())/1000);
+                document.getElementById('resultTime').innerHTML =  timeInSecs + ' secs'
+                if (getCurrentStage() == 430) { // This is Platinum 30 with only 5 questions
+                    document.getElementById('resultScore').innerHTML = correctAnswers + '/ 5'
+
+                } else {
+                    document.getElementById('resultScore').innerHTML = correctAnswers + '/ 10'
+                }
+
+                // Change 'Mark It' button colour based on results and time limit.
+
+
+                //timeLimit 
+                let levelVal = Math.floor(getCurrentStage()/100) -1; // gives 0 for bronze 1 for silver etc.
+                if ((timeInSecs <  timeLimit[levelVal]) && (correctAnswers==10)) {
+                    makeConfetti()
+                } else if ((timeInSecs <  timeLimit[levelVal]) && (correctAnswers==5) && (getCurrentStage() == 430)){
+                    makeConfetti()
+                } else {
+                     //alert('either too slow or not 100%')
+                }
+            }
+                  
+            // Uses current stage to get questions, question text, and answers
+            function getQuestions() {
+
+                let num1 = []; // used with num2 to work out the correct answers
+                let num2 = []; // used with num1 to work out the correct answers
+                let num1a = []; // for intermediate calculations
+                let num1b = []; // for intermediate calculations
+                let num2a = []; // for intermediate calculations
+                let num2b = []; // for intermediate calculations
+                let ans = []; // the correct answers
+                let num1_quest = []; // the actual item to appear in the displayed question in the 'num1_quest' location. Often it is just a copy of num1, but for example a double question num1 would be '2' whilst num1_quest would be 'Double'
+                let symbol = []; // the actual item to appear in the displayed question in the 'symbol' location.
+                let num2_quest = []; //the actual item to appear in the displayed question in the 'num2_quest' location.
+                let timesTableSelected = []; // the number (or numbers) in the times table choice seleced (e.g. [2, 4, 8] for 2s, 4s, and 8s)
+                let isRandomised = 0; // If the times table stage selcted is random order (eg. bronze stage 5 is '5s mixed', so in random order)
+                let questionType  //               
+                let currentStage = Number(getCurrentStage()); // The currently selected stage
+                let isTimesTableStage = 0;
+                let dpTwo = [];
+                let dpThree = [];
+
+                // The question types of each stage
+                let timesTableMultiplyStages = [101, 102, 104, 105, 108, 109, 111, 112, 114, 115, 118, 119, 121, 122, 124, 125, 128, 129, 201, 202, 204, 205, 210, 213, 215, 217, 219, 221, 223, 225, 227];
+                let timesTableDivideStages = [103, 106, 110, 113, 116, 120, 123, 126, 130, 203, 206, 211, 214, 216, 218, 220, 222, 224, 226, 228];
+                let timesTableMultiplyAndDivideStages = [107, 117, 127, 131, 203, 207, 212, 319, 320, 321, 322, 323, 324, 325];
+                let multiplyStages = [229, 317, 326, 327, 328, 329, 330, 401, 402, 403, 404, 405, 406, 407, 408, 409, 413, 415, 422, 423];
+                let divideStages = [230, 318, 419, 420, 421, 424];
+                let multiplyAndDivideStages = [];
+                let halfsStages = [303, 304, 310, 313, 315, 411, 412, 414, 416, 418];
+                let doublesStages = [302, 305, 306, 309, 311, 312, 314, 410, 417];
+                let squaredStages = [208, 316, 427];
+                let squareRootStages = [209];
+                let cubedStages = [428];
+                let cubeRootStages = [429];
+                let fractionsStages = [307, 308];
+                let factorsStages = [301];
+                let modulusStages = [426];
+                let percentStages = [430];
+                let factorialStages = [425];
+                let timesTableChoice = []; // The times table being tested, if more than one (e.g. 3s,6s,9s, then set to [3, 6, 9])
+
+                let inOrderStages = [101, 104, 108, 111, 114, 118, 121, 124, 128, 201, 204];
+
+                if (inOrderStages.includes(currentStage)) {
+                    isRandomised = 0;
+                } else {
+                    isRandomised = 1;
+                }
+
+                // First get the question type, as common operations happen for a given question type.
+                if (timesTableMultiplyStages.includes(currentStage)) {
+                    questionType = 'timesTableMultiply';
+                    isTimesTableStage = 1;
+                } else if (timesTableDivideStages.includes(currentStage)) {
+                    questionType = 'timesTableDivide';
+                    isTimesTableStage = 1;
+                } else if (timesTableMultiplyAndDivideStages.includes(currentStage)) {
+                    questionType = 'timesTableMultiplyAndDivide';
+                    isTimesTableStage = 1;
+                } else if (multiplyStages.includes(currentStage)) {
+                    questionType = 'multiply';
+                } else if (divideStages.includes(currentStage)) {
+                    questionType = 'divide';
+                } else if (multiplyAndDivideStages.includes(currentStage)) {
+                    questionType = 'multiplyAndDivide';
+                } else if (halfsStages.includes(currentStage)) {
+                    questionType = 'halfs';
+                } else if (doublesStages.includes(currentStage)) {
+                    questionType = 'doubles';
+                } else if (squaredStages.includes(currentStage)) {
+                    questionType = 'squared';
+                } else if (squareRootStages.includes(currentStage)) {
+                    questionType = 'squareRoot';
+                } else if (cubedStages.includes(currentStage)) {
+                    questionType = 'cubed';
+                } else if (cubeRootStages.includes(currentStage)) {
+                    questionType = 'cubeRoot';
+                } else if (fractionsStages.includes(currentStage)) {
+                    questionType = 'fractions';
+                } else if (factorsStages.includes(currentStage)) {
+                    questionType = 'factors';
+                } else if (modulusStages.includes(currentStage)) {
+                    questionType = 'modulus';
+                } else if (percentStages.includes(currentStage)) {
+                    questionType = 'percent';
+                } else if (factorialStages.includes(currentStage)) {
+                    questionType = 'factorial';
+                }
+
+
+                if (isTimesTableStage) {
+                    //The selected stage is a times table question. Get the times table being tested.
+                    if ((currentStage == 101) || (currentStage ==102) || (currentStage == 103)) {
+                        timesTableChoice = [10];
+                    } else if ((currentStage == 104) || (currentStage == 105) || (currentStage == 106)) {
+                        timesTableChoice = [5];
+                    } else if  (currentStage == 107) {
+                        timesTableChoice = [5, 10];
+                    } else if  ((currentStage == 108) || (currentStage == 109) || (currentStage == 110)) {
+                        timesTableChoice = [2];
+                    } else if  ((currentStage == 111) || (currentStage == 112) || (currentStage == 113)) {
+                        timesTableChoice = [4];
+                    } else if  ((currentStage == 114) || (currentStage == 115) || (currentStage == 116)) {
+                        timesTableChoice = [8];
+                    } else if  (currentStage == 117) {
+                        timesTableChoice = [2, 4 ,8]
+                    } else if  ((currentStage == 118) || (currentStage == 119) || (currentStage == 120)) {
+                        timesTableChoice = [3];
+                    } else if  ((currentStage == 121) || (currentStage == 122) || (currentStage == 123)) {
+                        timesTableChoice = [6];
+                    } else if  ((currentStage == 124) || (currentStage == 125) || (currentStage == 126)) {
+                        timesTableChoice = [9];
+                    } else if  (currentStage == 127) {
+                        timesTableChoice = [3, 6, 9];
+                    } else if  ((currentStage == 128) || (currentStage == 129) || (currentStage == 130)) {
+                        timesTableChoice = [7];
+                    } else if  (currentStage == 131) {
+                        timesTableChoice = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    } else if  ((currentStage == 201) || (currentStage == 202) || (currentStage == 203)) {
+                        timesTableChoice = [11];
+                    } else if  ((currentStage == 204) || (currentStage == 205) || (currentStage == 206)) {
+                        timesTableChoice = [12];
+                    } else if  (currentStage == 207) {
+                        timesTableChoice = [11, 12];
+                    } else if  ((currentStage == 210) || (currentStage == 211) || (currentStage == 212)) {
+                        timesTableChoice = [2,3,4,5,6,7,8,9,10,11,12];
+                    } else if  ((currentStage == 213) || (currentStage == 214)) {
+                        timesTableChoice = [50];
+                    } else if  ((currentStage == 215) || (currentStage == 216)) {
+                        timesTableChoice = [20];
+                    } else if  ((currentStage == 217) || (currentStage == 218)) {
+                        timesTableChoice = [40];
+                    } else if  ((currentStage == 219) || (currentStage == 220)) {
+                        timesTableChoice = [80];
+                    } else if  ((currentStage == 221) || (currentStage == 222)) {
+                        timesTableChoice = [30];
+                    } else if  ((currentStage == 223) || (currentStage == 224)) {
+                        timesTableChoice = [60];
+                    } else if  ((currentStage == 225) || (currentStage == 226)) {
+                        timesTableChoice = [90];
+                    } else if  ((currentStage == 227) || (currentStage == 228)) {
+                        timesTableChoice = [70];
+                    } else if  (currentStage == 319) {
+                        timesTableChoice = [15];
+                    } else if  (currentStage == 320) {
+                        timesTableChoice = [16];
+                    } else if  (currentStage == 321) {
+                        timesTableChoice = [18];
+                    } else if  (currentStage == 322) {
+                        timesTableChoice = [14];
+                    } else if  (currentStage == 323) {
+                        timesTableChoice = [13];
+                    } else if  (currentStage == 324) {
+                        timesTableChoice = [19];
+                    } else if  (currentStage == 325) {
+                        timesTableChoice = [17];
+                    }
+                }
+
+                // For each stage work out the 1x10 array variables: num1, num2, symbol, ans, num1_quest, num2_quest              
+                // Questions appear as: 'num1_quest'   'symbol'   'num2_quest'
+
+                switch (questionType) {
+                    case 'timesTableMultiply':
+                        num1 = generateNumberArray(1, 10, 1); // Get an ordered list from 1 to 10 using generateNumberArray(start, end, step);
+                        num2 = randomChoices(timesTableChoice, 10); //Get a random list of 10 numbers from the times tables type selected
+                        if (isRandomised) {
+                            num1 = randomShuffle(num1);
+                        }
+                        for (let i = 0; i < 10; i++) { // Runs 10 times to generate 10 questions 
+                            symbol.push('\u00D7'); // '\u00D7' is the unicode 'multiply' symbol
+                            ans.push(num1[i] * num2[i]);
+                        }
+                        num1_quest = num1;
+                        num2_quest = num2;
+                        break;
+
+                    case 'timesTableDivide':
+                        num1 = generateNumberArray(1, 10, 1); // Get an ordered list from 1 to 10 using generateNumberArray(start, end, step);
+                        num2 = randomChoices(timesTableChoice, 10); //Get a random list of 10 numbers from the times tables type selected
+                        if (isRandomised) {
+                            num1 = randomShuffle(num1);
+                        }
+                        for (let i = 0; i < 10; i++) { // Runs 10 times to generate 10 questions 
+                            symbol.push('\u00F7'); // '\u00F7' is the unicode 'divide' symbol
+                            ans.push(num1[i] * num2[i]);
+                        }
+                        // currenlty coded as a multiply question, so need to switch the numbers over 
+                        let tempAns = ans;
+                        ans = num1;
+                        num1 = tempAns;
+                        num1_quest = num1;
+                        num2_quest = num2;
+                        break;
+
+
+                    case 'timesTableMultiplyAndDivide':
+                        let isDivide = randomChoices([0, 1], 10); // get an array of 0s and 1s defining if the question will be a divide or a multiply question
+                        num1 = generateNumberArray(1, 10, 1); // Get an ordered list from 1 to 10 using generateNumberArray(start, end, step);
+                        num2 = randomChoices(timesTableChoice, 10); //Get a random list of 10 numbers from the times tables type selected
+                        
+                        if (isRandomised) {
+                            num1 = randomShuffle(num1);
+                        }   
+                        for (let i = 0; i < 10; i++) { // Runs 10 times to generate 10 questions 
+                            ans.push(num1[i] * num2[i]);
+                            if (isDivide[i]) {
+                                let tempAns = ans[i];
+                                ans[i] = num1[i];
+                                num1[i] = tempAns;
+                                symbol.push('\u00F7'); // '\u00F7' is the unicode 'divide' symbol
+                            } else {
+                                symbol.push('\u00D7'); // '\u00D7' is the unicode 'multiply' symbol
+                            }
+                        }        
+                        num1_quest = num1;
+                        num2_quest = num2;
+                        break;
+
+                    case 'squared':
+                        switch (currentStage) {
+                            case 208:
+                                num1 = generateNumberArray(1, 10, 1); // Get an ordered list from 1 to 10
+                                num1 = randomShuffle(num1);
+                            break;
+
+                            case 316: // Multiples of 10 squared.
+                            num1 = randomShuffle([1,2,3,4,5,6,7,8,9,10]);
+                            for (let i = 0; i < 10; i++) {
+                                num1[i] = num1[i]*10;
+                            }
+                            break;
+
+                            case 427: // 3-digit number squared
+                                // Pick 2 numbers in the 100s, then one each in the following hundreds to 900.
+                                num1a = getRandomNumbers(200, 299, 0, 2); // the 200's
+                                num1.push(num1a[0]);
+                                num1.push(num1a[1]);
+                                num1a = getRandomNumbers(300, 399, 0, 1); // the 300's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(400, 499, 0, 1); // the 400's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(500, 599, 0, 2); // the 500's
+                                num1.push(num1a[0]);
+                                num1.push(num1a[1]);
+                                num1a = getRandomNumbers(600, 699, 0, 1); // the 600's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(700, 799, 0, 1); // the 700's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(800, 899, 0, 1); // the 800's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(900, 999, 0, 1); // the 900's
+                                num1.push(num1a[0]);
+                                num1 = randomShuffle(num1);
+                            break;
+                        }
+
+                        // Do common squared stuff here
+                        for (let i = 0; i < 10; i++) {
+                                num2[i] = num1[i];
+                                ans[i] = num1[i]*num2[i];
+                                num1_quest[i] = num1[i];
+                                num2_quest[i] = '';
+                                symbol[i] = '\u00B2';
+                            }
+                    break;
+
+
+                    case 'squareRoot':
+                        // only one 'square root' stage (209)
+                        num1 = generateNumberArray(1, 10, 1); // Get an ordered list from 1 to 10
+                        num1 = randomShuffle(num1);
+                        for (let i = 0; i < 10; i++) {
+                            num2[i] = num1[i];
+                            ans[i] = num1[i]*num2[i];
+                            symbol[i] = '  \u221A  ';
+                            num1_quest[i] = '';
+                        }
+                        num2_quest = ans;
+                        ans = num1;
+                        break;
+
+                    case 'cubed':
+                        switch (currentStage) {
+                            case 428: // 2 digit numbers cubed
+                                // Pick 2 numbers in the 10s, then one each in the following 10s to 90.
+                                for (let i = 0; i < 10; i++) {
+                                    let r = i+1
+                                    if (i == 9) {
+                                        r = 1
+                                    }
+                                    num1a = getRandomNumbers(10*r, 10*(r+1), 0, 1);
+                                    num1.push(num1a);
+                                }
+
+                            break;
+                        }
+
+                        // Do common cubed stuff here
+                        for (let i = 0; i < 10; i++) {
+                                num2[i] = num1[i];
+                                ans[i] = num1[i]*num2[i]*num2[i];
+                                num1_quest[i] = num1[i];
+                                num2_quest[i] = '';
+                                symbol[i] = '\u00B3';
+                            }
+                    break;
+
+                    case 'cubeRoot':
+                        switch (currentStage) {
+                            case 429: // cube roots
+                                // Answers should be an integer between 2 and 20.
+                                // Pick 5 numbers in the 2-10 range, then five in the 10-20 range.
+                                num1a = randomSample([2,3,4,5,6,7,8,9,10], 5);
+                                num1b = randomSample([11,12,13,14,15,16,17,18,19,20], 5);
+                                num1 = num1a.concat(num1b);
+                                num1 = randomShuffle(num1);
+                            break;
+                        }
+
+                        // Do common cube root stuff here
+                        for (let i = 0; i < 10; i++) {
+                                ans[i] = num1[i];
+                                num1_quest[i] = '';
+                                num2_quest[i] = num1[i]*num1[i]*num1[i];
+                                symbol[i] = '\u221B';
+                            }
+
+
+                    break;
+
+                    case 'multiply':
+                    case 'divide':
+                        switch (currentStage) {
+                            case 229:  // 2 & 3 digit * by 10 and 100
+                            case 230: //2 & 3 digit / by 10 and 100 
+                            
+                                // Get 5 2 digit numbers:
+                                num1a = getRandomNumbers(11, 99, 0, 5); // 2 digit random number (from 11 to 99)
+                            
+                                // Get 5 3 digit numbers:
+                                num1b = getRandomNumbers(101, 999, 0, 5); // 3 digit random number (from 101 to 999)
+                                num1 = num1a.concat(num1b); // join the lists
+                                num1 = randomShuffle(num1); // and randomise
+                                num2 = randomChoices([10, 100], 10); // a random mixture of 10s and 100s
+                            break;
+
+                            case 317: // 2 digit x 4'
+                                num1 = getRandomNumbers(11, 99, 0, 10); // get 10 2 digit numbers
+                                num2 = randomChoices([4],10); // quick way of getting an array of 4s  
+                            break;
+                            
+                            case 318: // 2 digit / 4'
+                                num1 = getRandomNumbers(11, 99, 0, 10); // get 10 2 digit numbers
+                                num2 = randomChoices([4],10); // quick way of getting an array of 4s
+                            break;
+                            
+                            case 326: //2 digit multiply by 4, 6, 8
+                                num1 = generateNumberArray(10,99,1); // The list of possible num1 options
+                                num1 = deleteNthElements(num1, 10); // remove all numbers ending in 0 so no easy questions
+                                num1 = randomSample(num1, 10); // select 10 from the options, not repeated.
+                                num2 = randomChoices([4, 6, 8], 10); // choose 10 from 4, 6, 8
+                            break;
+                            
+                            case 327: //2 digit multiply by 3, 7, 9
+                                num1 = generateNumberArray(10,99,1); // The list of possible num1 options
+                                num1 = deleteNthElements(num1, 10); // remove all numbers ending in 0 so no easy questions
+                                num1 = randomSample(num1, 10); // select 10 from the options, not repeated.
+                                num2 = randomChoices([3, 7, 9],10); // choose 10 from 3, 7, 9
+                            break;
+                            
+                            case 328: // 2 digit number < 50 x unit
+                                num2 = generateNumberArray(10,49,1); // The list of possible num1 options
+                                num2 = deleteNthElements(num2, 10); // remove all numbers ending in 0 so no easy questions
+                                num2 = randomSample(num2, 10); // select 10 from the options, not repeated
+                                num1 = randomChoices([2, 3, 4, 5 ,6, 7, 8, 9],10); // 
+                            break;
+                            
+                            case 329: // Decimal < 5 (1 DP) * units  
+                                num2 = generateNumberArray(10,49,1); // The list of possible num1 options
+                                num2 = deleteNthElements(num2, 10); // remove all numbers ending in 0 so no easy questions
+                                num2 = randomSample(num2, 10); // select 10 from the options, not repeated
+                                for (let i = 0; i < 10; i++) {
+                                    num2[i] = num2[i]/10 // get the decimal point
+                                } 
+                                num1 = randomChoices([2, 3, 4, 5 ,6, 7, 8, 9],10); //
+                            break;
+                            
+                            case 330: // Decimal < 10 (1 DP) * units 
+                                num2 = generateNumberArray(50,99,1); // The list of possible num1 options, examples have all numbers in the range 5.1 to 9.9
+                                num2 = deleteNthElements(num2, 10); // remove all numbers ending in 0 so no easy questions
+                                num2 = randomSample(num2, 10); // select 10 from the options, not repeated
+                                for (let i = 0; i < 10; i++) {
+                                    num2[i] = num2[i]/10 // get the decimal point
+                                } 
+                                num1 = randomChoices([2, 3, 4, 5 ,6, 7, 8, 9],10); //
+                            break;
+
+                            case 401: // TU x 25
+                                num2 = randomChoices([25], 10);
+                                num1 = generateNumberArray(10,100,1);
+                                num1 = deleteNthElements(num1, 10);
+                                num1 = randomSample(num1, 10);
+                            break;
+                            
+                            case 402: // TU x 50
+                                num2 = randomChoices([50], 10);
+                                num1 = generateNumberArray(10,100,1);
+                                num1 = deleteNthElements(num1, 10);
+                                num1 = randomSample(num1, 10);
+                            break;
+
+                            case 403: // TU x 20
+                                num2 = randomChoices([20], 10);
+                                num1 = generateNumberArray(10,100,1);
+                                num1 = deleteNthElements(num1, 10);
+                                num1 = randomSample(num1, 10);
+                            break;
+                            
+                            case 404: // TU x 40
+                                num2 = randomChoices([40], 10);
+                                num1 = generateNumberArray(10,100,1);
+                                num1 = deleteNthElements(num1, 10);
+                                num1 = randomSample(num1, 10);
+                            break;
+
+                            case 405: // TU x 80
+                                num2 = randomChoices([80], 10);
+                                num1 = generateNumberArray(10,100,1);
+                                num1 = deleteNthElements(num1, 10);
+                                num1 = randomSample(num1, 10);
+                            break;
+                            
+                            case 406: // TU x 30
+                                num2 = randomChoices([30], 10);
+                                num1 = generateNumberArray(10,100,1);
+                                num1 = deleteNthElements(num1, 10);
+                                num1 = randomSample(num1, 10);
+                            break;
+
+                            case 407: // TU x 60
+                                num2 = randomChoices([60], 10);
+                                num1 = generateNumberArray(10,100,1);
+                                num1 = deleteNthElements(num1, 10);
+                                num1 = randomSample(num1, 10);
+                            break;
+
+                            case 408: // TU x 90
+                                num2 = randomChoices([90], 10);
+                                num1 = generateNumberArray(10,100,1);
+                                num1 = deleteNthElements(num1, 10);
+                                num1 = randomSample(num1, 10);
+                            break;
+
+                            case 409: // TU x 70
+                                num2 = randomChoices([70], 10);
+                                num1 = generateNumberArray(10,100,1);
+                                num1 = deleteNthElements(num1, 10);
+                                num1 = randomSample(num1, 10);
+                            break;
+
+                            case 419: // three digit number divided by 4 
+                                num1 = generateNumberArray(100,1000,1); // The list of possible num1 options (three digits)
+                                num1 = deleteNthElements(num1, 10); // remove all numbers ending in 0 so no easy questions
+                                num1 = randomSample(num1, 10); // select 10 from the options, not repeated.
+                                num2 = randomChoices([4], 10) // simple way to get an array of 4's
+                            break;
+
+                            case 420: // 4 digit number to 1 dp divided by 4
+                                num1a = generateNumberArray(100,1000,1); // The list of possible whole number options (three digits)
+                                num1a = randomSample(num1a, 10); // and get a selection of 10 of them, not repeated
+                                num1b = randomChoices([1,2,3,4,5,6,7,8,9], 10) // the 1 dp number, can be repeated.
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1a[i] + num1b[i]/10; // make the 1dp number 
+                                    num2[i] = 4; // divisor is always 4.
+                                }    
+                            break;
+
+                            case 421: // 4 digit number divided by units                    
+                                // Allow 1/2, 1/4, 1/5, 1/8ths to give decimal point answers as these fractions are non-recurring.
+                                // All other divisors (3, 6, 7, 9) need to give whole numbers, as these fractions are recurring numbers.
+                                // Lets have six divisors that could give decimal point answers,
+                                // and four divisors that we force to give whole number answers.
+                                // First the whole number answers:
+                                num1a = getRandomNumbers(Math.ceil(1001/3), Math.floor(9999/3), 0, 1) * 3; // first get a number divisible by 3 thats four digits
+                                num1.push(num1a);
+                                num1a = getRandomNumbers(Math.ceil(1001/6), Math.floor(9999/6), 0, 1) * 6; // then a number divisible by 6 thats four digits
+                                num1.push(num1a);
+                                num1a = getRandomNumbers(Math.ceil(1001/7), Math.floor(9999/7), 0, 1) * 7; // then a number divisible by 7 thats four digits
+                                num1.push(num1a);
+                                num1a = getRandomNumbers(Math.ceil(1001/9), Math.floor(9999/9), 0, 1) * 9; // then a number divisible by 9 thats four digits
+                                num1.push(num1a);
+                                num1a = getRandomNumbers(1000, 9999, 0, 6); // and 6 others that can give decimal answers
+                                num1b = num1.concat(num1a); // join the arrays, now the whole numbers in order
+                                num2a = [3, 6, 7, 9, 2, 4, 5, 8]; // divisors for the first four numbers, plus one of each remaining divisors (2,4,5,8)
+                                num2b = randomSample([2, 4, 5, 8], 2); // divisors for the remaing two numbers is a rondom choice
+                                let num2_ordered = num2a.concat(num2b); // divisors in order
+                                // now mix the up, but keep a common order
+                                let order = randomShuffle([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]); // this is the random order
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1b[order[i]];
+                                    num2[i] = num2_ordered[order[i]];
+                                }
+                            break;
+                            
+                            case 424: // 4 and 5 digit number to 1 d.p. divided by 3
+                                alert('Platinum Stage 24 \nOnly give answers to 2 d.p where nessesary.');
+                                // get five 4-digit numbers, and five 5-digit numbers, without ending in a 0.
+                                for (let i = 0; i < 5; i++) {
+                                    num1a = getRandomNumbers(101, 999, 0, 1); // the four digit whole number
+                                    num1b = randomSample([1,2,3,4,5,6,7,8,9], 1); // the decimal number
+                                    num1.push((num1a + num1b)/10);
+                                    num2.push(3);
+                                    num1a = getRandomNumbers(1001, 9999, 0, 1); // the five digit whole number
+                                    num1b = randomSample([1,2,3,4,5,6,7,8,9], 1); // the decimal number
+                                    num1.push((num1a + num1b)/10);
+                                    num2.push(3);
+                                }
+                            break;
+
+
+                            case 413: // 5/6 digit number to 2 d.p. x U 
+                                // get 5 5-digit numbers, and 5 6-digit numbers, with no .x0 endings.
+                                dpTwo = generateNumberArray(0,100,1); // First get the 2-dp options
+                                dpTwo = deleteNthElements(dpTwo, 10);
+                                dpTwo = randomSample(dpTwo, 10); // select 10 from the options
+                                num1a = getRandomNumbers(101, 999, 0, 5); // Then get the whole portion of the five digit numbers
+                                num1b = getRandomNumbers(1001, 9999, 0, 5); // and  the whole portion of the six digit numbers
+                                num1 = num1a.concat(num1b); // join the 5 and 6 digit whole number lists
+                                num1 = randomShuffle(num1); // and randomise
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1[i] + (dpTwo[i]/100);
+                                    num2[i] = randomChoices([2,3,4,5,6,7,8,9],1);
+                                }         
+                            break;
+
+                            case 415: // 6 digit number to 3 d.p. x U 
+                                dpThree = generateNumberArray(0,1000,1); // First get the 3-dp options
+                                dpThree = deleteNthElements(dpThree, 10);
+                                dpThree = randomSample(dpThree, 10); // select 10 from the options
+                                num1 = getRandomNumbers(101, 999, 0, 10); // Then get the whole portion of the five digit numbers
+                                num1 = randomShuffle(num1); // and randomise
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1[i] + (dpThree[i]/1000);
+                                    num2[i] = randomChoices([2,3,4,5,6,7,8,9],1);
+                                }
+                            break;
+
+                            case 422: // HTU x TU
+                                num1 = generateNumberArray(100,1000,1); // The list of possible num1 options (HTU)
+                                num1 = deleteNthElements(num1, 10); // remove all numbers ending in 0 so no easy questions
+                                num1 = randomSample(num1, 10); // select 10 from the options
+                                num2 = generateNumberArray(10,100,1); // The list of possible num1 options (TU)
+                                num2 = deleteNthElements(num2, 10); // remove all numbers ending in 0 so no easy questions
+                                num2 = randomSample(num2, 10); // select 10 from the options
+                            break;
+
+                            case 423: // 5 digit numbers to 2 dp x 3 
+                            // get 5 5-digit numbers, and 5 6-digit numbers, with no .x0 endings.
+                                dpTwo = generateNumberArray(0,100,1); // First get the 2-dp options
+                                dpTwo = deleteNthElements(dpTwo, 10);
+                                dpTwo = randomSample(dpTwo, 10); // select 10 from the options
+                                num1 = getRandomNumbers(101, 999, 0, 10); // Then get the whole portion of the five digit numbers
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1[i] + (dpTwo[i]/100);
+                                    num2[i] = 3;
+                                }
+                            break;                           
+
+                        }
+                        
+                        // do common multiply and divide stuff here:
+                        for (let i = 0; i < 10; i++) {         
+                            if (questionType == 'multiply') {
+                            ans[i] = num1[i] * num2[i];
+                            symbol[i] = '  \u00D7  ';
+                            } else if (questionType == 'divide') {
+                            ans[i] = num1[i] / num2[i];
+                            symbol[i] = '  \u00F7  ';
+                            }                          
+                        }
+
+                        // Round answers to avoid answers being calculated as .00000000x numbers
+                        //if (currentStage == 424) { // 4 and 5 digit number to 1 d.p. divided by 3
+                            // round answer to 2 dp.
+                            for (let i = 0; i < 10; i++) {
+                                ans[i] = Math.round(ans[i] * 1000) / 1000 // Round all answers to 3dp as this is the most precission in any of the stages.
+                            }
+                        //}
+                        
+                        num1_quest = num1;
+                        num2_quest = num2;
+                        break;
+
+                    case 'doubles':
+                        switch (currentStage) {
+                            case 302: // Double integers up to 100
+                                num1 = getRandomNumbers(11, 99, 0, 10)
+                            break;                       
+
+                            case 305: // Double integers up to 200
+                                num1a = getRandomNumbers(11, 99, 0, 4); // 4 numbers below 100 
+                                num1b = getRandomNumbers(101, 199, 0, 6); // 6 numbers above 100
+                                num1 = num1a.concat(num1b); // join the lists
+                                num1 = randomShuffle(num1); // and randomise
+                            break;
+                            
+                            case 306: // Double integers up to 500
+                            // Sample tests choose two between 100 and 200, eight between 200 and 500. Replicate this behaviour
+                                num1a = getRandomNumbers(101, 199, 0, 2); // 2 numbers  100 - 200
+                                num1b = getRandomNumbers(201, 499, 0, 8); // 8 numbers 200 - 500
+                                num1 = num1a.concat(num1b); // join the lists
+                                num1 = randomShuffle(num1); // and randomise
+                            break;
+                            
+                            case 309: // Double decimals less than 1 with 2dp
+                                num1 = generateNumberArray(0,100,1); // First get the 2-dp options
+                                num1 = deleteNthElements(num1, 10); // remove any .x0 numbers
+                                num1 = randomSample(num1, 10); // select 10 from the options
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1[i]/100; // and convert to 2 dp
+                                    num1[i] = Math.round(num1[i] * 100) / 100 //round to 2 dp to prevent small errors
+                                }
+                            break;
+                            
+                            case 311: // Double decimals with 2dp
+                                // Maximum in sample tests is 22.84, so choose to limit to 25
+                                num1b = getRandomNumbers(1, 24, 0, 10); // get the whole part of the number                                num1a = generateNumberArray(0,100,1); // First get the 2-dp options
+                                num1a = generateNumberArray(0,100,1); // get the 2-dp options
+                                num1a = deleteNthElements(num1a, 10); // remove any .x0 numbers
+                                num1a = randomSample(num1a, 10); // select 10 from the options
+                                for (let i = 0; i < 10; i++) {
+                                    num1a[i] = num1a[i]/100; // and convert to 2 dp
+                                    num1[i] = num1a[i] + num1b[i]; // and make the full number
+                                    num1[i] = Math.round(num1[i] * 100) / 100 //round to 2 dp to prevent small errors
+                                }
+                                
+                            break;
+                            
+                            case 312: // Double multiples of 10 up to 1000               
+                                num1 = getRandomNumbers(11, 99, 0, 10); // Start at 111 so it's not too easy
+                                    for(var i=0; i<num1.length; i++) {
+                                        num1[i] *= 10;
+                                    }              
+                            break;
+                            
+                            case 314: // Double multiples of 10 up to 10,000
+                                // Sample test has one number in range 200-900, and nine over 1,000. Replicate this behaviour.
+                                num1a = getRandomNumbers(21, 99, 0, 1); // 1 numbers  210 - 990
+                                num1b = getRandomNumbers(101, 999, 0, 9); // 8 numbers 1010 - 9,990
+                                num1 = num1a.concat(num1b); // join the lists
+                                num1 = randomShuffle(num1); // and randomise
+                                for(var i=0; i<num1.length; i++) {
+                                        num1[i] *= 10;
+                                    }
+                            break;
+
+                            case 410: // doubling 5 digit to 2 dp < 200.
+                                num1a = getRandomNumbers(101, 199, 0, 10); // the whole numbers
+                                num1b = getRandomNumbers(11, 99, 0, 10); // the 2 dp numbers
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1a[i] + (num1b[i]/100); 
+                                    num1[i] = num1[i].toFixed(2);
+                                }  
+                            break;
+                            
+                            case 417: // doubling 5 digit to 2 dp > 200
+                                // Choose one number in each 100s, and two in the 200s and 500s                       
+                                num1a = getRandomNumbers(200, 299, 0, 2); // the 200's
+                                num1.push(num1a[0]);
+                                num1.push(num1a[1]);
+                                num1a = getRandomNumbers(300, 399, 0, 1); // the 300's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(400, 499, 0, 1); // the 400's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(500, 599, 0, 2); // the 500's
+                                num1.push(num1a[0]);
+                                num1.push(num1a[1]);
+                                num1a = getRandomNumbers(600, 699, 0, 1); // the 600's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(700, 799, 0, 1); // the 700's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(800, 899, 0, 1); // the 800's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(900, 999, 0, 1); // the 900's
+                                num1.push(num1a[0]);
+
+                                num1 = randomShuffle(num1);
+                                num1b = getRandomNumbers(11, 99, 0, 10); // the 2 dp numbers
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1[i] + (num1b[i]/100); 
+                                    num1[i] = num1[i].toFixed(2);
+                                }   
+                            break;
+                        }
+                        
+                        //Do common 'double' tasks here
+                        for (let i = 0; i < 10; i++) {
+                            num2[i] = 2;
+                            ans[i] = num1[i]*num2[i];
+                            symbol[i] = '';
+                            num1_quest[i] = 'Double';
+                        }
+                        
+                        num2_quest = num1;
+                    break;
+
+                    case 'halfs':
+                        switch (currentStage) {
+
+                            case 303: // Half evens numbers up to 100
+                                num1 = generateNumberArray(10,99,2) // all the evens
+                                num1 = randomSample(num1,10); // pick 10
+                            break;
+
+                            case 304: // Half odd numbers up to 50
+                                num1 = generateNumberArray(11,50,2) // all the odds
+                                num1 = randomSample(num1,10); // pick 10
+                            break;
+
+                            case 310: // Half decimals less than 10 containing tenths
+                                num1a = randomShuffle([1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9]); // pick 10 units. Allow at most two of same number
+                                num1b = randomShuffle([1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9]); // pick 10 tenths. Allow at most two of same number
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1a[i] + (num1b[i] / 10);
+                                }
+                            break;
+
+                            case 313: // Half mutiples of 10 less than 1,000
+                                num1 = getRandomNumbers(11, 99, 0, 10);
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1[i] * 10;
+                                }
+                            break;
+                            
+                            case 315: // Half mutiples of 10 less than 10,000
+                            // Sample test has one number in range 200-900, and nine over 1,000. Replicate this behaviour.
+                                num1a = getRandomNumbers(11, 99, 0, 1);
+                                num1b = getRandomNumbers(101, 999, 0, 9);
+                                num1 = num1a.concat(num1b); // join the lists
+                                num1 = randomShuffle(num1); // and randomise
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1[i] * 10;
+                                }
+                            break;  
+
+                            case 411: // halfing 3 digit odds < 200
+                                num1 = generateNumberArray(101,199,2) // all the odds
+                                num1 = randomSample(num1,10); // pick 10
+                            break;
+
+                            case 412: // halfing 3 digit odds > 200
+                                num1 = generateNumberArray(201,999,2) // all the odds
+                                num1 = randomSample(num1,10); // pick 10
+                            break;
+
+                            case 414: // halfing 5 digit with 2dp < 200
+                                num1a = getRandomNumbers(101, 199, 0, 10); // the whole numbers
+                                num1b = getRandomNumbers(11, 99, 0, 10); // the 2 dp numbers
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1a[i] + (num1b[i]/100); 
+                                    num1[i] = num1[i].toFixed(2);
+                                }   
+                            break;
+
+                            case 416: // halving 5 digit numbers to 1dp
+                                num1a = getRandomNumbers(1001, 9999, 0, 10); // the whole numbers
+                                num1b = randomSample([1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9],10); // pick 10 tenths. Allow at most two of same number
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1a[i] + (num1b[i]/10); 
+                                }   
+                            break;
+
+                            case 418: // halfing 5 digit with 2dp > 200  
+                                // Choose one number in each 100s, and two in the 200s and 500s                       
+                                num1a = getRandomNumbers(200, 299, 0, 2); // the 200's
+                                num1.push(num1a[0]);
+                                num1.push(num1a[1]);
+                                num1a = getRandomNumbers(300, 399, 0, 1); // the 300's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(400, 499, 0, 1); // the 400's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(500, 599, 0, 2); // the 500's
+                                num1.push(num1a[0]);
+                                num1.push(num1a[1]);
+                                num1a = getRandomNumbers(600, 699, 0, 1); // the 600's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(700, 799, 0, 1); // the 700's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(800, 899, 0, 1); // the 800's
+                                num1.push(num1a[0]);
+                                num1a = getRandomNumbers(900, 999, 0, 1); // the 900's
+                                num1.push(num1a[0]);
+
+                                num1 = randomShuffle(num1);
+                                num1b = getRandomNumbers(11, 99, 0, 10); // the 2 dp numbers
+                                for (let i = 0; i < 10; i++) {
+                                    num1[i] = num1[i] + (num1b[i]/100); 
+                                    num1[i] = num1[i].toFixed(2);
+                                }   
+                            break;
+                        }
+
+                        // do common 'halfs' tasks here
+                        for (let i = 0; i < 10; i++) {
+                            ans[i] = num1[i] / 2
+                            symbol[i] = '';
+                            num1_quest[i] = '\u00BD   of  ';
+                        }
+                        
+                        num2_quest = num1;
+                    break;
+
+                    case 'fractions':
+                        let denominator = [];
+                        let numerator = [];
+
+                        switch (currentStage) {
+                            case 307: // unit fractions of amounts
+                                denominator = [2,3,3,4,4,5,6,7,8,9]; // Choose two thirds and two quarter questions to match examples.
+                                denominator = randomShuffle(denominator);
+                                numerator = randomChoices([1], 10)
+                                ans = getRandomNumbers(11, 111, 0, 10) // pick 10 elements at random from 11 to 111, can be repeated
+                                for (let i = 0; i < 10; i++) {
+                                    num2[i] = ans[i]*denominator[i]/numerator[i]; 
+                                }
+
+                            break;
+
+                            case 308: // fractions of amounts
+                                denominator = [2,3,3,4,4,5,6,7,8,9]; // Choose two thirds and two quarter questions to match examples.
+                                denominator = randomShuffle(denominator);
+                                for (let i = 0; i < 10; i++) {
+                                    let numeratorMax = Math.min(denominator[i], 5); // Choose up to 4, but limit based on denominator value
+                                    numerator[i] = getRandomNumbers(1, numeratorMax, 0, 1);
+                                    num1[i] =numerator[i]/denominator[i];
+                                    // num2 should be divisible by the denominator, they should know up to x12, so choose random number from 2 to 12
+                                    num2[i] = denominator[i] * getRandomNumbers(2, 12, 0, 1);
+                                    ans[i] = num1[i] * num2[i];
+                                }
+                            break;
+                        }
+
+                        // Do common 'fractions' tasks here
+                        // https://en.wikipedia.org/wiki/Unicode_subscripts_and_superscripts
+                        // \u2044 is unicode fraction slash
+                        // \u002F is unicode solidus ('\')  
+                        for (let i = 0; i < 10; i++) {
+                            unicodeSup = getUnicodeFromDigit('sup', numerator[i]);
+                            unicodeSub = getUnicodeFromDigit('sub', denominator[i]);
+                            num1_quest[i] = unicodeSup + '\u2044' + unicodeSub;
+                            symbol[i] = '  of  ';
+                            num2_quest[i] = num2[i];
+                        }
+
+                        // If unicode super and subscripts do not render well, use the following
+                        // code instead. 
+
+                        // for (let i = 0; i < 10; i++) {
+                           // num1_quest[i] = numerator[i] + '\u002F' + denominator[i];
+                           // symbol[i] = '  of  ';
+                           // num2_quest[i] = num2[i];
+                           // answers = num1[i]*num2[i];
+                        // }
+                    break;
+
+                    case 'modulus': 
+                        // Choose three numerators betwwen 50 and 100, five in the 100's, and 2 in the 200s (below 240)
+                        num1 = num1.concat(getRandomNumbers(51, 99, 0, 3));
+                        num1 = num1.concat(getRandomNumbers(101, 199, 0, 5));
+                        num1 = num1.concat(getRandomNumbers(201, 240, 0, 2));
+                        num1 = num1 = randomShuffle(num1);
+
+                        // Choose divisors from 7 to 18, not 10, to reflect tests
+                        num2 = randomSample([7,8,9,11,12,13,14,15,16,17,18], 10)
+
+                        for (let i = 0; i < 10; i++) {
+                            num1_quest[i] = num1[i];
+                            num2_quest[i] = num2[i];
+                            symbol[i] = 'mod';
+                            ans[i] = num1[i] % num2[i]; 
+                        }
+                    break;
+
+                    case 'factorial': 
+                        num1 = randomShuffle([1,2,3,4,5,6,7,8,9,10]);
+                        let answers = [1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800];
+                        let ansIndex;
+                        for (let i = 0; i < 10; i++) {
+                            num1_quest[i] = '';
+                            num2_quest[i] = ' !';
+                            symbol[i] = num1[i];
+                            ansIndex = num1[i] - 1;
+                            ans[i] = answers[ansIndex]; 
+                        }   
+                    break;
+
+                    case 'percent': 
+                        // Examples show percentages of numbers < 100 to 2 d.p
+                        // Examples show only 5 questions are given, so do this here also.
+                        num1 = getRandomNumbers(1, 100, 0, 5); // Choose 5 percentages
+                        num2 = getRandomNumbers(5, 100, 2, 5); // Choose 5 numbers to 2 d.p
+                        // As only 5 questions are shown we need to fill up the
+                        // questions etc. with 'blanks' first, then replace those
+                        // questions that have been calcualted i.e the first 5.
+                        for (let i = 0; i < 10; i++) {
+                            if (i > 4) {
+                                num1_quest[i] = '----'; 
+                                symbol[i] = '-----' ;
+                                num2_quest[i] = '----' ;
+                                ans[i] = 0;
+                            } else {
+                                num1_quest[i] = num1[i];
+                                symbol[i] = '%  of  ';
+                                num2_quest[i] = num2[i];
+                                ans[i] = (num1[i] * num2[i]) / 100;                       
+                                ans[i] = Math.round(ans[i] * 10000) / 10000; // Round to 4 dp. I need this otherwise .99999999 and .000000000005 answers can occur.
+                            }
+                        }
+                    break;
+
+                    case 'factors':
+                        alert('Gold Stage 1 \n\nEnter 4 factors for each question.\nSeparate each one with a decimal point ');
+                        
+                        let factors;
+                        num1b = 0;
+
+                        while (num1.length < 10) { // keep going unitl we have out 10 numbers to find factors of
+                            num1a = getRandomNumbers(15, 99, 0, 1) // Get a random number
+                            num1a = num1a[0];
+                            if (!(num1.includes(num1a))) { // must be unique
+                                factors = findFactors(num1a) // find its factors
+                                if (factors.length > 3) { // If enough factors append it to num1, and add its factors to the ans variable
+                                    num1.push(num1a);
+                                    ans.push([]);
+                                    ans[num1.length-1] = factors;      
+                                }
+                            }
+                        }
+
+                        for (let i = 0; i < 10; i++) {
+                            num1_quest[i] = '';
+                            symbol[i] = 'Factors of  ';
+                            num2_quest[i] = num1[i]
+                        }
+
+                    break;
+
+                        
+
+                
+                }
+
+                realAnswers = ans;
+                //console.log(ans); // Use to check real answers
+                return([num1_quest, symbol, num2_quest, ans]); 
+                
+            }
+
+            function findFactors(n) {
+                let factorList = [] ;
+                let max = Math.ceil(n** 0.5 );
+                
+                for (let i = 1; i < max ; i++) {
+                    if (n % i == 0) {
+                        if (i != n/i) {
+                            factorList.push(i);
+                            factorList.push(n / i);
+                        } else {
+                            factorList.push(i);
+                        }
+                    }
+                }
+                return(factorList);
+
+            }
+
+                        
+
+            function questionExists(num1ToTest, symbolToTest, num2ToTest, num1, symbol, num2) {
+            // Searches for common num1, symbol and num2 locations and returns the number of
+            // matches found.
+            // num1ToTest, symbolToTest and num2ToTest define the question to look for. 
+            // num1, symbol and num2 are lists defining the questions already in existance (those to search through).
+            // Returns the number of matches found.  If no matches, returns 0.
+
+                let matchNum1 = [];
+                let matchNum2 = [];
+                let matchSymbol = [];
+                let matchCount = 0;
+
+                for (let i = 0; i < num1.length; i++) {
+                    if (num1ToTest == num1[i]) {
+                        matchNum1[i] = 1;
+                    } else {
+                        matchNum1[i] = 0;
+                    }
+
+                    if (num2ToTest == num2[i]) {
+                        matchNum2[i] = 1;
+                    } else {
+                        matchNum2[i] = 0;
+                    }
+
+                    if (symbolToTest == symbolToTest[i]) {
+                        matchSymbol[i] = 1;
+                    } else {
+                        matchSymbol[i] = 0;
+                    }
+
+                matchCount = matchCount + (matchNum1[i] * matchNum2[i] * matchSymbol[i]);
+                }
+            }
+
+            // Function for generating random numbers from (and including) 'low' to
+            // (and excluding) 'high', to the number of decimal places ('dp') requested.
+            // Returned number can include 'low' but excludes 'high'
+            // Specify the numbe of random numbers required by the 'count' argument.
+            function getRandomNumbers(low, high, dp, count) {
+                let range = high - low;
+                range = range * Math.pow(10, dp);
+                low = low * Math.pow(10,dp);
+                let numToTest = [];
+                let num = [];
+                let i = 0;
+
+                //while loop to get count nums
+                while (count > i) {  
+                    let numToTest = Math.floor((Math.random() * range) + low); // the random number with decimal place removed (eg. an interger)
+                    numToTest = numToTest /  Math.pow(10,dp);
+                    if (num.includes(numToTest)) {
+                        // i = i; // do nothing, let it loop again 
+                    } else {
+                        num.push(numToTest); //Add the number ot the list to return
+                        i=i+1
+                    }
+                }
+                return(num);
+
+            }
+
+            //function for generating an array of numbers with a 'start' 'end' and 'step'
+            function generateNumberArray(start, end, step) {
+                let array = [];
+
+                for (let i = start; i <= end; i=i+step) {
+                    array.push(i);
+                }
+                return array
+            }
+
+            // funtion to delete evey Nth element from an array.
+            function deleteNthElements(array, n) {
+                let newArray = [];
+
+                for (let i = 0; i < array.length; i++) {
+                    if (i % n)
+                    newArray.push(array[i]);
+                }
+
+                return newArray
+            }
+
+            //function to perform a random shuffle of an array. See https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+            function randomShuffle(array) {
+                let currentIndex = array.length,  randomIndex;
+
+                // While there remain elements to shuffle.
+                while (currentIndex != 0) {
+
+                    // Pick a remaining element.
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+
+                    // And swap it with the current element.
+                    [array[currentIndex], array[randomIndex]] = [
+                    array[randomIndex], array[currentIndex]];
+                }
+                return array
+            }
+
+            // funtion to pick a random sample of k items from an array, item is not repeated
+            function randomSample(array, k) {
+                let newArray = [];
+                let currentIndex = array.length, randomIndex;
+               
+                // While there remain elements to be picked.
+                while (currentIndex != array.length - k) {
+
+                    // Pick a remaining element.
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+
+                    // And swap it with the current element so it wont get picked again.
+                    [array[currentIndex], array[randomIndex]] = [
+                    array[randomIndex], array[currentIndex]];
+                }
+                // Get the randomly picked elements stored at the end of the array
+                newArray = array.slice(array.length - k)
+
+                return newArray
+
+            }
+
+            // funtion to pick a random sample of k items from an array, item can be repeated
+            function randomChoices(array, k) {
+                let newArray = [];
+
+                for (let i = 0; i < k; i++){
+                    randomIndex = Math.floor(Math.random() * array.length)
+                    newArray.push(array[randomIndex])
+                }
+
+                return newArray
+            }
+
+            function getUnicodeFromDigit(script, num) {
+                // These are the 1 to 9 unicode sub- and super-script codes
+                let unicodeTextSup = ['\u00B9', '\u00B2', '\u00B3', '\u2074', '\u2075', '\u2076', '\u2077', '\u2078', '\u2079']
+                let unicodeTextSub = ['\u2081', '\u2082', '\u2083', '\u2084', '\u2085', '\u2086', '\u2087', '\u2088', '\u2089']
+                let index = num-1
+                if (script == 'sup') {
+                    unicode = unicodeTextSup[index]
+                } else if (script == 'sub') {
+                    unicode = unicodeTextSub[index]
+                }
+                return(unicode)
+            }
+        
+        </script>
+    </head>
+    
+    <div class="overlay" id="overlay"></div>
+    <div class="loader" id="loader"> 
+        <img src="hand-tapping.gif" width="300px" height="auto" id="loaderImage">
+        <p style="color: white; font-size: xx-large;"><strong>Marking your test...</strong></p>
+    </div>
+
+    <body style="padding-top: 0%;" id="body">
+        <style>
+            li {
+                padding-right: 10px;
+            }
+            .navbar {
+                z-index: 3;
+            }
+        </style>
+        <nav class="navbar navbar-light bg-light">
+            <a class="navbar-brand" href="index.html">Velmead Maths Challenge</a>
+            <ul class="navbar-nav">
+            <div class="row">
+                <li class="nav-item active">
+                    <a class="nav-link" href="stages.html">Stages</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="tests.html">Tests</a>
+                </li>   
+            </div>
+            </ul>
+        </nav>
+        <style>
+            body {
+                overflow-x: hidden; /* Hide horizontal scrollbar */
+                text-align: center;
+                /*width: 100%;
+                margin: auto;
+                height: 100vh;
+                background: url("background.png") top right;
+                background-color: #ffffff;
+                background-size: cover;
+                position: relative;*/
+            }
+        </style>
+
+        <!--<div class="loaderDiv">
+            <span class="loader"></span>
+        </div>-->
+
+        <div class="container bodyNotLoader" style="padding: 0;">
+            <!--Title-->
+            <div class="row d-flex justify-content-center" style="padding-bottom: 1%; padding-top: 1%">
+                <h1 class="white">Stages</h1>
+            </div>
+            <!-- Stage Headings -->
+            <div class="row d-flex container justify-content-center" style="width: auto;">
+                <button class="btn btn-light" type="submit" id="buttonBronze" tabindex="0" style="background-color: #CD7F32;">Bronze</button>
+                <button class="btn btn-light" type="submit" id="buttonSilver" tabindex="0" style="background-color: #adadad;">Silver</button>
+                <button class="btn btn-light" type="submit" id="buttonGold" tabindex="0" style="background-color: #D4AF37;">Gold</button>
+                <button class="btn btn-light" type="submit" id="buttonPlatinum" tabindex="0" style="background-color: #e0dfdc;">Platinum</button>
+            </div>
+            <style>
+                @media (max-width: 1000px) {
+                    table {
+                        min-width: 300px;
+                    }
+                }
+
+                .btn {
+                    font-size: 15px;
+                    margin-left: .5%;
+                    min-width: 80px; 
+                    border-color: #919191;
+                    border-width: 1px;
+                }
+
+            </style>
+            <!--Dropdown--> <!--Go button-->
+            <div class="row" style="padding-bottom: 2%; padding-top: 2%;">
+                <div class="dropdown container d-flex justify-content-center">
+                    <select id="dropdown-menu" onchange="callback_changeStage()" style="text-align-last: center; color: white; background-color: #0275d8; min-width: 255px; min-height: 35px; max-height: 35px;">
+                        <option value="unselected" style="text-align-last: center; min-width: 255px;">Select Stage</option>
+                    </select>
+                    <button class="btn btn-primary" type="submit" id="goButton" style="margin-left: 3%;">Go!</button>
+                </div>
+            </div>
+            <!--Table for challenge-->
+            <div class="row d-flex justify-content-center">
+                <table class="table" style="width: 40%; min-width: 320px; transform: translate(-50%,0); position: absolute; left: 50%">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width: 5%"></th>
+                            <th scope="col" style="width: 55%">Question</th>
+                            <th scope="col" style="width: 45%">Answer</th>
+                            <th scope="col" style="width: 9%">Marks</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+    
+                        <!--Row one-->
+                        <tr>
+                            <th scope="row" class="table-element">1</th>
+                            <td id="q1" class="table-element" style="padding-right: 2px!important; padding-left: 0px!important"></td>
+                            <td>
+                                <input type="text" inputmode="decimal" class=" table-element form-control" id="inputAnswer1" tabindex="0">
+                            </td>
+                            <td>
+                                <fieldset disabled>
+                                    <div>
+                                        <input class="table-element form-control" id ="mark1" style="background-color: #cccccc;">
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
+                
+                        <!--Row two-->
+                        <tr>
+                            <th scope="row">2</th>
+                            <td id="q2"></td>
+                            <td>
+                                <input type="text" inputmode="decimal" class="form-control" id="inputAnswer2" tabindex="0">
+                            </td>
+                            <td>
+                                <fieldset disabled>
+                                    <div>
+                                        <!--style="background-color: #cccccc;"-->
+                                        <input class="form-control" id ="mark2" style="background-color: #cccccc;">
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
+    
+                        <!--Row three-->
+                        <tr>
+                            <th scope="row">3</th>
+                            <td id="q3"></td>
+                            <td>
+                                <input type="text" inputmode="decimal" class="form-control" id="inputAnswer3" tabindex="0">
+                            </td>
+                            <td>
+                                <fieldset disabled>
+                                    <div>
+                                        <input class="form-control" id="mark3" style="background-color: #cccccc;">
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
+                        <!--Row four-->
+                        <tr>
+                            <th scope="row">4</th>
+                            <td id="q4"></td>
+                            <td>
+                                <input type="text" inputmode="decimal" class="form-control" id="inputAnswer4" tabindex="0">
+                            </td>
+                            <td>
+                                <fieldset disabled>
+                                    <div>
+                                        <input class="form-control" id ="mark4" style="background-color: #cccccc;">
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
+    
+                        <!-- TAB-Index: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex-->
+                      
+                        <!--Row five-->
+                        <tr>
+                            <th scope="row">5</th>
+                            <td id="q5"></td>
+                            <td>
+                                <input type="text" inputmode="decimal" class="form-control" id="inputAnswer5" tabindex="0">
+                            </td>
+                            <td>
+                                <fieldset disabled>
+                                    <div>
+                                        <input class="form-control" id ="mark5" style="background-color: #cccccc;">
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
+    
+                        <!--Row six-->
+                        <tr>
+                            <th scope="row">6</th>
+                            <td id="q6"></td>
+                            <td>
+                                <input type="text" inputmode="decimal" class="form-control" id="inputAnswer6" tabindex="0">
+                            </td>
+                            <td>
+                                <fieldset disabled>
+                                    <div>
+                                        <input class="form-control" id="mark6" style="background-color: #cccccc;">
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
+                        <!--Row seven-->
+                        <tr>
+                            <th scope="row">7</th>
+                            <td id="q7"></td>
+                            <td>
+                                <input type="text" inputmode="decimal" class="form-control" id="inputAnswer7" tabindex="0">
+                            </td>
+                            <td>
+                                <fieldset disabled>
+                                    <div>
+                                        <input class="form-control" id ="mark7" style="background-color: #cccccc;">
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
+    
+                        <!--Row eight-->
+                        <tr>
+                            <th scope="row">8</th>
+                            <td id="q8"></td>
+                            <td>
+                                <input type="text" inputmode="decimal" class="form-control" id="inputAnswer8" tabindex="0">
+                            </td>
+                            <td>
+                                <fieldset disabled>
+                                    <div>
+                                        <input class="form-control" id="mark8" style="background-color: #cccccc;">
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
+                        <!--Row nine-->
+                        <tr>
+                            <th scope="row">9</th>
+                            <td id="q9"></td>
+                            <td>
+                                <input type="text" inputmode="decimal" class="form-control" id="inputAnswer9" tabindex="0">
+                            </td>
+                            <td>
+                                <fieldset disabled>
+                                    <div>
+                                        <input class="form-control" id ="mark9" style="background-color: #cccccc;">
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
+    
+                        
+                        <!--Row ten-->
+                        <tr>
+                            <th scope="row">10</th>
+                            <td id="q10"></td>
+                            <td>
+                                <input type="text" inputmode="decimal" class="form-control" id="inputAnswer10" tabindex="0">
+                            </td>
+                            <td>
+                                <fieldset disabled>
+                                    <div>
+                                        <input class="form-control" id ="mark10" style="background-color: #cccccc;">
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
+    
+                        <!--Results-->
+                        <tr>
+                            <th scope="row"></th>
+                            <td><p id="resultTime"></p></td>
+                            <td>
+                                <p id="resultScore" class="text-right" style="margin-right: -50px;">/ 10</p></td>
+                            <td></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </table>
+            </div>
+            <div id="spacer" style="width: 200px; height: 560px; margin-right:0px;"></div>
+            <div class="row">
+                <!--Mark it button-->
+                <div class="container-fluid d-flex justify-content-center">
+                    <button class="btn btn-primary" style="margin-bottom: 100px; z-index: 1;" type="submit" id="markIt" tabindex="0">Mark Answers</button>
+                </div>
+            </div>
+        </div>
+
+        
+
+
+        
+        <!--JavaScript Links-->
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <script src="confetti.js"></script> <!-- https://www.cssscript.com/confetti-falling-animation/ -->
+        <script src="loaders.js"></script> 
+    </body>
+
+    <footer>
+
+    </footer>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<html lang = 'en'>
+    <head>
+        <title>Velmead Maths Challenge - Home</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="indexOnly.css">
+        <meta name="viewport" content="width=device-width">
+        <script>
+            window.onload = (event) => {
+                hideLoader()
+            }
+            function hideLoader() {
+                var loaderHamster = document.getElementById("wheel-and-hamster");
+                var bodyNotLoader = document.getElementById("bodyNotLoader");
+                setTimeout(() => { loaderHamster.style.display = "none"; bodyNotLoader.style.display = "inline"; bodyNotLoader.style.position = "absolute"}, 1000);
+            }
+        </script>
+
+    </head>
+    <body>
+        <style>
+
+            li {
+                margin-right: 10px;
+            }
+
+            .loaderDiv {
+                z-index: 99;
+                transform: translate(-50%,0);
+                position: absolute;
+                left: 50%;
+            }
+
+            button {
+                transform: translate(-50%,0);
+                position: absolute;
+                left: 50%  
+            }
+
+            .btnLeft {
+                margin-left: -25px;
+            }
+
+            .btnRight {
+                margin-left: 25px;
+            }
+
+        </style>
+        <nav class="navbar navbar-light bg-light">
+            <a class="navbar-brand" href="index.html">Velmead Maths Challenge</a>
+            <ul class="navbar-nav">
+            <div class="row">
+                <li class="nav-item active">
+                    <a class="nav-link" href="stages.html">Stages</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="tests.html">Tests</a>
+                </li>    
+            </div>
+            </ul>
+        </nav>
+        <div aria-label="Orange and tan hamster running in a metal wheel" role="img" class="wheel-and-hamster" id="wheel-and-hamster">
+            <div class="wheel"></div>
+            <div class="hamster">
+                <div class="hamster__body">
+                    <div class="hamster__head">
+                        <div class="hamster__ear"></div>
+                        <div class="hamster__eye"></div>
+                        <div class="hamster__nose"></div>
+                    </div>
+                    <div class="hamster__limb hamster__limb--fr"></div>
+                    <div class="hamster__limb hamster__limb--fl"></div>
+                    <div class="hamster__limb hamster__limb--br"></div>
+                    <div class="hamster__limb hamster__limb--bl"></div>
+                    <div class="hamster__tail"></div>
+                </div>
+            </div>
+            <div class="spoke"></div>
+        </div>
+
+        <div id="bodyNotLoader">
+            <h1 style="padding-bottom: 3%;">Welcome to the Velmead Maths Challenges!</h1>
+            <p style="padding-bottom: 10%;">What would you like to do?</p>
+            <div class="row">
+                <div class="col-4">
+                    <button class="btn btnLeft btn-light" type="submit" tabindex="0" style="background-color: #e0dfdc;"><a href="stages.html">Practice<br>Stages</a></button>
+                </div>
+                <div class="col-4">
+                    <div class="loaderDiv">
+                        <span class="loader"></span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <button class="btn btnRight btn-light" type="submit" tabindex="0" style="background-color: #e0dfdc;"><a href="tests.html">Practice<br>Tests</a></button>
+                </div>
+            </div>
+        </div>
+
+        <!--button-->
+    </body>

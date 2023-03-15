@@ -1,0 +1,698 @@
+<!DOCTYPE HTML>
+<html lang = 'en'>
+    <head>
+        <title>Test Zone</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="loaders.css">
+        <meta name="viewport" content="width=device-width">
+        
+        <script>
+
+            // define variables with script-wide scope
+            let testLevel; // sring. The test level currently selected (bronze, silver, gold, platinum). Gets set on button press.
+            let testCountAvailable; // integer. The number of tests availble for the curently selected level.
+            let testOrder = []; //an array of integers that is randomised when go button is pressed to give the order of tests e.g. [2,1,3,0]
+            let numQuestions; // the numer of questions for the current test
+            let tryNumber = 0; //integer. The number of goes a user has had at the given test. Used to pick which of the availble tests to run.  See testOrder variable. Starts at 0 to make getting item from a list easier
+            let currentQuestionNum = -1; //the current number of the question being displayed. Starts at 0 to make getting item from a list easier. -1 indicates no current question.
+            let userAnswers = []; // The user submitted answers
+            let answers = []; // the real answers
+            let marks = []; // array for the marks, boolean.
+            let totalMarks; // the users total correctly answered questions
+            let timerStart; // time at start of test
+            let timerEnd; // time at end of test
+            let timeInSecs; // the time taken to complete the test
+            let timeLimit; // the time limit (in seconds) for the currently selected stage
+            let timeLimitBronze = 120; // the time limit (in seconds)
+            let timeLimitSilver = 120; // the time limit (in seconds)
+            let timeLimitGold = 120; // the time limit (in seconds)
+            let timeLimitPlatinum = 120; // the time limit (in seconds)
+
+            //does this as soon as the window loads
+            window.onload = (event) => {
+                    addClickListeners();
+                    let buttonSubmit = document.getElementById("submitButton");
+                    buttonSubmit.disabled = true;
+                    changeLevel('bronze');
+            }
+
+            //called when window loads
+            function addClickListeners() {
+                //submit button click listener
+                let buttonSubmit = document.getElementById("goButton");
+                buttonSubmit.addEventListener("click", callback_goButton);
+                let buttonGo = document.getElementById("submitButton");
+                buttonGo.addEventListener("click", callback_submitButton);
+                let buttonBronze = document.getElementById("buttonBronze");
+                buttonBronze.addEventListener("click", callback_buttonBronze);
+                let buttonSilver = document.getElementById("buttonSilver");
+                buttonSilver.addEventListener("click", callback_buttonSilver);
+                let buttonGold = document.getElementById("buttonGold");
+                buttonGold.addEventListener("click", callback_buttonGold);
+                let buttonPlatinum = document.getElementById("buttonPlatinum");
+                buttonPlatinum.addEventListener("click", callback_buttonPlatinum);
+            }
+
+            function callback_buttonBronze () {
+                changeLevel('bronze');
+            }
+
+            function callback_buttonSilver () {
+                changeLevel('silver');
+            }
+
+            function callback_buttonGold () {
+                changeLevel('gold');
+            }
+
+            function callback_buttonPlatinum () {
+                changeLevel('platinum');
+            }
+
+            function changeLevel(newLevel) {
+                currentQuestionNum = -1 // reset to signify no currentQuestionNum
+                document.getElementById('goButton').disabled = false; //enable go button
+                
+                if (testLevel == newLevel) {
+                    return; // no need to change anything
+                }  else {
+                    testLevel = newLevel;
+                    
+                    clearQuestion();
+                    updateProgressDisplay()
+                    // disable submit button and user entry
+                    document.getElementById("submitButton").disabled = true;
+                    document.getElementById('userAnswer').disabled = true;
+                    // clear the table
+                    deleteResultsTable()
+                    let marksTable = document.getElementById("marks-table-container"); //the marks table
+                    marksTable.style.display = 'none' // hide it
+                
+                }
+                // make border on button to make it look selected
+                switch (testLevel) {
+                    case 'bronze':
+                        changeBorderWidth(0);
+                        timeLimit = timeLimitBronze;
+                        break;
+
+                    case 'silver':
+                        changeBorderWidth(1);
+                        timeLimit = timeLimitSilver
+                        break;
+                    
+                    case 'gold':
+                        changeBorderWidth(2);
+                        timeLimit = timeLimitGold
+                        break;
+
+                    case 'platinum':
+                        changeBorderWidth(3);
+                        timeLimit = timeLimitPlatinum;
+                        break;
+
+                    default:
+                        changeBorderWidth(0);
+                }
+                setTestCountAvailable(testLevel);
+                setTestOrder(testCountAvailable);
+            }
+
+            function  updateProgressDisplay() {
+                if (currentQuestionNum == -1) { // there is no question displayed so don't show anything 
+                    document.getElementById('progressDisplay').innerHTML = ''
+                } else {
+                    let qNum = currentQuestionNum + 1; // to get to start at 1
+                    let totalQ = numQuestions;
+                    document.getElementById('progressDisplay').innerHTML = qNum + ' / ' + totalQ;
+                }
+            }
+
+            function setTestCountAvailable(testLevel) {
+                switch (testLevel) {              
+                    case 'bronze':
+                        testCountAvailable = bronzeTest.length;
+                        break;
+
+                    case 'silver':
+                        testCountAvailable = silverTest.length;
+                        break;
+                    
+                    case 'gold':
+                        testCountAvailable = goldTest.length;
+                        break;
+
+                    case 'platinum':
+                        testCountAvailable = platinumTest.length;
+                        break;
+                }
+            }
+
+            function setTestOrder(testCountAvailable) {
+                testOrder = [];
+                for (let i = 0; i < testCountAvailable; i++) {
+                    testOrder.push(i);
+                }
+                testOrder = randomShuffle(testOrder)
+            }
+
+            function deleteResultsTable() {
+                // deletes all but the first row of the results table
+                let table = document.getElementById("marks-table")
+                let x = table.rows.length; // number of rows in the table 
+
+                for (let i = 0; i < x-1; i++) {
+                    table.deleteRow(-1); // deletes the last row each time
+                }
+            }
+
+            function callback_goButton() {
+
+                // disable the Go button
+                document.getElementById('goButton').disabled = true;
+
+                // clear the table
+                deleteResultsTable()
+                let marksTable = document.getElementById("marks-table-container"); //the marks table
+                marksTable.style.display = 'none'
+
+                // Clear the answers and marks from previous go
+                userAnswers = [];
+                answers = [];
+                marks = [];
+
+                // get test questions from the current level based on the random order and try number, we can call this the activeTest
+                activeTest = getActiveTest();
+                activeTest = randomShuffle(activeTest);
+                numQuestions = activeTest.length;
+
+                // increase try number by one
+                tryNumber++
+
+                // Make 'Submit' button and user input active
+                document.getElementById("submitButton").disabled = false;
+                document.getElementById('userAnswer').disabled = false;
+                // Set focus to first answer input location
+                document.getElementById('userAnswer').focus();
+                // Start timer
+                timerStart = new Date();
+                // display the first question. 
+                currentQuestionNum = 0;
+                updateProgressDisplay()
+                displayQuestion(currentQuestionNum)
+                // All other question display (and marking of answers) is done via the 'submit' button callback function.  
+            }
+
+            function getActiveTest() {
+                //makes the currentTestNumber loop so when the tries goes above the amount of tests available, it loops round again yay :)
+                let currentTestNumber = testOrder[testCountAvailable-((tryNumber%testCountAvailable)+1)] 
+                let currentTest
+                switch (testLevel) {              
+                    case 'bronze':
+                        currentTest = bronzeTest[currentTestNumber]
+                        break;
+
+                    case 'silver':
+                        currentTest = silverTest[currentTestNumber]
+                        break;
+                    
+                    case 'gold':
+                        currentTest = goldTest[currentTestNumber]
+                        break;
+
+                    case 'platinum':
+                        currentTest = platinumTest[currentTestNumber]
+                        break;
+                }  
+                return(currentTest)
+            }
+
+            function displayQuestion(QuestionNum) {
+                // Get the question text and answers
+                let [num1, symbol, num2, ans] =  getQuestionText(QuestionNum);
+                // and display it
+                document.getElementById('question').innerHTML = num1 + ' ' + symbol + ' ' + num2;
+            }
+
+            function getQuestionText(QuestionNum) {
+                // Get the question text and answers
+                let [num1, symbol, num2, ans] =  activeTest[QuestionNum]
+                // identify special symbols and replace with unicode
+                switch (symbol) {
+                    case 'x':
+                        symbol = '\u00D7';
+                        break;
+                    case '/':
+                        symbol = '\u00F7';
+                        break;
+                }
+
+                return ([num1, symbol, num2, ans] );
+
+            }
+
+            function clearQuestion() {
+                document.getElementById('question').innerHTML = '';
+            }
+
+            function callback_submitButton() {
+                //store the user answers for checking once all qustions have been answered
+                userAnswers.push(document.getElementById('userAnswer').value);
+                //clear the user answer
+                document.getElementById('userAnswer').value = '';
+                document.getElementById('userAnswer').focus(); // to keep focus on the user answer input
+                //increase currentQuestionNum
+                currentQuestionNum++
+                if (currentQuestionNum < numQuestions) {
+                    updateProgressDisplay()
+                    displayQuestion(currentQuestionNum)
+                } else { // there are no more questions and the test is complete, so mark it and show results
+                    
+                    // calculate the time taken
+                    timerEnd = new Date();
+                    timeInSecs = Math.round((timerEnd.getTime()-timerStart.getTime())/1000);
+
+                    currentQuestionNum = -1; // indicates no active questions 
+                    // clear questions and progress
+                    clearQuestion();
+                    updateProgressDisplay();
+                    //disable submit button and user entry
+                    document.getElementById("submitButton").disabled = true;
+                    document.getElementById('userAnswer').disabled = true;
+                    document.getElementById('goButton').disabled = false; //enable go button for another try
+
+                    timerEnd = new Date();
+
+                    setRandomLoader()
+                    showLoader();
+                    sleep(5000).then(() => { hideLoader(); });
+                    sleep(5010).then(() => {markTest(); });
+                    sleep(5020).then(() => {showResults(); });
+                    sleep(5030).then(() => {showConfetti(); });
+                    //markTest();// Mark Test
+
+                    // ******* Display spinning something for a few seconds saying 'Marking Test' for suspense! ********
+                    //showResults();
+                    // If results are all correct and time is under the limit then: 
+                    //if ((timeInSecs < timeLimit) && (totalMarks == numQuestions)) {
+                      //  makeConfetti()
+                   // }
+                }
+            }
+            
+            function showConfetti() {
+                // If results are all correct and time is under the limit then: 
+                if ((timeInSecs < timeLimit) && (totalMarks == numQuestions)) {
+                        makeConfetti()
+                    }
+            }
+
+            function makeConfetti() {
+                //set colours of confetti depending on the stage
+                let colors = []
+                switch (testLevel) {
+                    case 'bronze':
+                        colors = ['rgba(205, 173, 124,', 'rgba(214, 186, 145,', 'rgba(232, 213, 188,', 'rgba(205, 127, 50,', 'rgba(210, 140, 71,']
+                        break;
+
+                    case 'silver':
+                        colors = ['rgba(192,192,192,', 'rgba(169,169,169,', 'rgba(200,200,200,']
+                        break;
+                    
+                    case 'gold':
+                        colors = ['rgba(192,192,10,', 'rgba(169,169,10,', 'rgba(200,200,10,']
+                        break;
+
+                    case 'platinum':
+                        colors = ['rgba(192,192,192,', 'rgba(240,240,250,', 'rgba(200,200,220,']
+                        break;
+                }
+                confetti.setColor(colors)
+                
+                // for starting the confetti 
+                const start = () => {
+                    setTimeout(function() {
+                        confetti.start()
+                    }, 0); // 1000 is time that after 1 second start the confetti ( 1000 = 1 sec)
+                };
+
+                //  for stopping the confetti 
+                const stop = () => {
+                    setTimeout(function() {
+                        confetti.stop()
+                    }, 5000); // 5000 is time that after 5 second stop the confetti ( 5000 = 5 sec)
+                };
+
+                // after this here we are calling both the function so it works
+                start();
+                stop();
+            }
+
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }  
+
+            function showResults() {
+                buildMarksTable();
+                // Display the marks table
+                let marksTable = document.getElementById("marks-table-container"); //the marks table
+                marksTable.style.display = "inline";
+            }
+
+            function buildMarksTable() {
+                // get the marks table element :
+                let table = document.getElementById("marks-table"); 
+
+                // The table heading is made in HTLM and stays the same. Only need to add the rows 
+                // for the questions/answers. These rows are removed (need to do this) when the table is no longer required.
+                // The add a row for each question, filling in the question,user answers nad reusult as we go
+                for (let i = 0; i < numQuestions; i++) {                   
+                    // build the row.
+                    // Create an empty <tr> element and add it to the end of the table:
+                    let row = table.insertRow(-1); // index of -1  results in a new row being inserted at the last position
+
+                    // Insert new cells (<td> elements) at the 1st 2nd 3rd and 4th position of the "new" <tr> element:
+                    let cell1 = row.insertCell(0);
+                    let cell2 = row.insertCell(1);
+                    let cell3 = row.insertCell(2);
+                    let cell4 = row.insertCell(3);
+
+                    // The question number
+                    cell1.innerHTML = i + 1;
+                    
+                    // the question
+                    let [num1, symbol, num2, ans] =  getQuestionText(i);
+                    cell2.innerHTML = num1 + ' ' + symbol + ' ' + num2;;
+
+                    // the user answer
+                    cell3.innerHTML = userAnswers[i]
+                    cell1.style.fontWeight = 'bold';
+
+                    // the mark box (turns red or green)
+                    let markBox = document.createElement("INPUT");
+                    markBox.setAttribute("class","table-element form-control")
+                    //markBox.setAttribute("id",resultID)
+                    if (marks[i] == true) {
+                        markBox.setAttribute("style","background-color: #43b516;")
+                    } else {
+                        markBox.setAttribute("style","background-color: #d10e00;")
+                    }
+                    cell4.appendChild(markBox);
+                    // probably better to populate as we go as no need to keep track of ids. 
+                } 
+                // Once all rows for the individual questions have been added, we need to add the final row
+                // this is the time and the score
+                let row = table.insertRow(-1); 
+                // Insert new cells (<td> elements) at the 1st 2nd 3rd and 4th position of the "new" <tr> element:
+                let cell1 = row.insertCell(0);
+                let cell2 = row.insertCell(1);
+                let cell3 = row.insertCell(2);
+                let cell4 = row.insertCell(3);
+
+                cell2.innerHTML =  timeInSecs + ' secs';
+                
+                // calculate the marks 
+                totalMarks = 0;
+                for (let i in marks) {
+                    totalMarks += marks[i];
+                }
+                cell4.innerHTML = totalMarks + ' / ' + numQuestions
+
+            }
+
+            function markTest() {
+                // First retrieve the true answers
+                for (let i = 0; i < numQuestions; i++) {
+                    let ans =  activeTest[i][3];
+                    answers.push(ans);
+                } 
+                // and compare with the user answers
+                for (let i = 0; i < numQuestions; i++) {
+                    if (userAnswers[i] == answers[i]) {
+                        marks.push(1)
+                    } else {
+                        marks.push(0)
+                    }
+
+                } 
+            }
+
+            //function to perform a random shuffle of an array. See https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+            function randomShuffle(array) {
+                let currentIndex = array.length,  randomIndex;
+
+                // While there remain elements to shuffle.
+                while (currentIndex != 0) {
+
+                    // Pick a remaining element.
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+
+                    // And swap it with the current element.
+                    [array[currentIndex], array[randomIndex]] = [
+                    array[randomIndex], array[currentIndex]];
+                }
+                return array
+            }
+
+            // funtion to pick a random sample of k items from an array, item can be repeated
+            function randomChoices(array, k) {
+                let newArray = [];
+
+                for (let i = 0; i < k; i++){
+                    randomIndex = Math.floor(Math.random() * array.length)
+                    newArray.push(array[randomIndex])
+                }
+
+                return newArray
+            }
+
+            //changes border width of selected stage
+            function changeBorderWidth(levelIDNumber) {
+                let buttonIds = ['buttonBronze','buttonSilver','buttonGold','buttonPlatinum']
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(buttonIds[i]).style.borderWidth = '1px';
+                }
+                document.getElementById(buttonIds[levelIDNumber]).style.borderWidth = '3px';
+            }
+
+            /*  Sample Tests
+            Prepare the test questions and answers here.
+            Questions are given in a group of four items, i.e [num1, operator, num2, answer] for each question.
+            Special operator symbols are converted to unicode symbols as below:
+            operator x = '\u00D7' (the unicode 'multiply' symbol)
+                    / = '\u00F7' (is the unicode 'divide' symbol)
+            The questions from each test are displayed to the user in a random order.*/
+           
+
+            let bronzeTest = [];
+            
+
+            bronzeTest[0] = [
+                    ['81','/','9',    1],
+                    ['6','x','7',    1],
+                    ['8','x','4',   1],
+                    ['36','/','6',   1],
+                    ]
+            
+            bronzeTest[1] = [
+                    ['b1/3','x','1/3',    1,],
+                    ['b1/3','x','2/3',    1],
+                    ['b1/3','x','3/3',    1]
+                    ]
+
+            bronzeTest[2] = [
+                    ['b2/3','x','1/3',    1],
+                    ['b2/3','x','2/3',    1],
+                    ['b2/3','x','3/3',   1]
+                    ]
+
+            bronzeTest[3] = [
+                    ['b3/3','x','1/3',    1],
+                    ['b3/3','x','2/3',    1],
+                    ['b3/3','x','3/3',    1]
+                    ]
+            
+            let silverTest = [];
+
+            silverTest[0] = [
+                    ['s0/1','x','1/4',    1],
+                    ['s0/1','x','2/4',    1],
+                    ['s0/1','x','3/4',    1],
+                    ['s0/1','x','4/4',    1]
+                    ]
+                    
+
+            silverTest[1] = [
+                    ['s1/1','x','1/4',    1],
+                    ['s1/1','x','2/4',    1],
+                    ['s1/1','x','3/4',    1],
+                    ['s1/1','x','4/4',    1]
+                    ]
+            let goldTest = [];
+
+            goldTest[0] = [
+                    ['g0/0','x','1/2',    1],
+                    ['g0/0','x','2/2',    1],
+                    ]
+                
+            let platinumTest = [];
+
+            platinumTest[0] = [
+                    ['p0/2','x','1/2',    1],
+                    ['p0/2','x','2/2',    1],
+                    ]
+
+            platinumTest[1] = [
+                    ['p1/2','x','1/2',    1],
+                    ['p1/2','x','2/2',    1],
+                    ]
+
+            platinumTest[2] = [
+                    ['p2/2','x','1/4',    1],
+                    ['p2/2','x','2/4',    1],
+                    ['p2/2','x','3/4',    1],
+                    ['p2/2','x','4/4',    1],
+                    ]
+                
+            /*
+            '\u00D7' is the unicode 'multiply' symbol
+            '\u00F7' is the unicode 'divide' symbol
+            '\u00B3' Cubed symbol
+            '\u221B' Cube root symbol
+            '\u00BD' Half symbol*/
+
+            
+        </script>
+
+    </head>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="loader" id="loader"> 
+        <img src="hand-tapping.gif" width="300px" height="auto" id="loaderImage">
+        <p style="color: white; font-size: xx-large;"><strong>Marking your test...</strong></p>
+    </div>
+
+    <body style="padding-top: 0%;" id="body">
+        <style>
+            li {
+                padding-right: 10px;
+            }
+        </style>
+
+    <nav class="navbar navbar-light bg-light">
+        <a class="navbar-brand" href="index.html">Velmead Maths Challenge</a>
+        <ul class="navbar-nav">
+        <div class="row">
+            <li class="nav-item active">
+                <a class="nav-link" href="stages.html">Stages</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="tests.html">Tests</a>
+            </li>   
+        </div>
+        </ul>
+    </nav>
+
+    <style>
+        body {
+            overflow-x: hidden; /* Hide horizontal scrollbar */
+            text-align: center;
+            background-color: white;
+            /*width: 100%;
+            margin: auto;
+            height: 100vh;
+            background: url("background.png") top right;
+            background-color: #ffffff;
+            background-size: cover;
+            position: relative;*/
+        }
+
+        .marks-table {
+            display: none;
+        }
+    </style>
+
+    <div class="container" id="container" style="padding: 0;">
+        <div class="container" style="padding: 0;">
+            <!--Title-->
+            <div class="row d-flex justify-content-center" style="padding-bottom: 1%; padding-top: 1%; margin: 0;">
+                <h1 class="white">Tests</h1>
+            </div>
+            <!-- Stage Headings -->
+            <div class="row d-flex container justify-content-center" style="width: auto; margin: 0;">
+                <p>There are 20 questions to complete.<br>Questions appear one at a time.<br>Submit an answer to move on to the next one.</p>
+            </div>
+
+            <!-- Stage Headings -->
+            <div class="row d-flex container justify-content-center" style="width: auto;">
+                <button class="btn btn-light" type="submit" id="buttonBronze" tabindex="0" style="background-color: #CD7F32;">Bronze</button>
+                <button class="btn btn-light" type="submit" id="buttonSilver" tabindex="0" style="background-color: #adadad;">Silver</button>
+                <button class="btn btn-light" type="submit" id="buttonGold" tabindex="0" style="background-color: #D4AF37;">Gold</button>
+                <button class="btn btn-light" type="submit" id="buttonPlatinum" tabindex="0" style="background-color: #e0dfdc;">Platinum</button>
+            </div>
+            <style>
+                .btn {
+                    font-size: 15px;
+                    margin-left: .5%;
+                    margin-right: .5%;
+                    min-width: 80px; 
+                    border-color: #919191;
+                    border-width: 1px;
+                }
+                .row {
+                    margin: 0;
+                }
+            </style>
+            
+            <!--Go button-->
+            <div class="row" style="padding-bottom: 1%; padding-top: 2%; margin: 0;">
+                <div class="dropdown container d-flex justify-content-center">
+                    <button class="btn btn-primary" type="submit" id="goButton">Go!</button>
+                </div>
+            </div>
+            <!--Progress display-->
+            <div class="row d-flex container justify-content-center" id ="progressDisplay" style="width: auto; margin: 0; height: 30px; color: #a1a0a0;">
+                <p><strong></strong></p>
+            </div>
+            <!--Questions-->
+            <div class="row d-flex container justify-content-center" style="width: auto; margin: 0; height: 70px;">
+                <h2 id="question" style="margin-top: 10px;"></h2>
+            </div>
+            <!--Answer input-->
+            <div class="row d-flex container justify-content-center" style="position: static; width: auto; margin: 0;">
+                <input class="table-element form-control" id ="userAnswer" style="display: inline; max-width: 300px; background-color: #ffffff; text-align: center;">
+            </div>
+            <!--Submit Button-->
+            <div class="row" style="padding-bottom: 2%; padding-top: 2%; margin: 0;">
+                <div class="dropdown container d-flex justify-content-center">
+                    <button class="btn btn-primary" type="submit" id="submitButton">Submit</button>
+                </div>
+            </div>
+       </div>
+        <div class="container marks-table" id="marks-table-container">
+            <div class="row d-flex justify-content-center">
+                <table class="table" id="marks-table" style="width: 40%; min-width: 320px; transform: translate(-50%,0); position: absolute; left: 50%">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width: 5%"></th>
+                            <th scope="col" style="width: 55%">Question</th>
+                            <th scope="col" style="width: 45%">Your Answer</th>
+                            <th scope="col" style="width: 9%">Marks</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    
+    <!--JavaScript Links-->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="confetti.js"></script>
+    <script src="loaders.js"></script> 
+</body>
+</html>
