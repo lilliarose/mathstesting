@@ -354,6 +354,8 @@
 
             function callback_goButton() {
 
+                setRandomLoader() // get the 'making your test' gif ready so it's local and ready to show when needed.
+
                 if (getCurrentStage() == "unselected") {
                     return                    
                 } 
@@ -450,12 +452,10 @@
 
             function callback_markIt() {
                 timerEnd = new Date();
-                setRandomLoader()
+                //setRandomLoader()
                 showLoader();
                 sleep(5000).then(() => { hideLoader(); });
-                sleep(5000).then(() => {
-                markTest();
-                })
+                sleep(5000).then(() => {markTest(); });
 
             }
 

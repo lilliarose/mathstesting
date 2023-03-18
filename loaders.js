@@ -25,37 +25,56 @@
 // dancing orange: https://media4.giphy.com/media/l2JJHEW1lToNnJzxe/giphy.gif?cid=ecf05e476i3vtxwwzlu6h6bk5ebli8gwzpt5phw78ay9bd04&rid=giphy.gif&ct=g
 // giphy embed: <iframe src="https://giphy.com/embed/l2JJHEW1lToNnJzxe" width="460" height="480" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/playkids-children-junior-junioronthejob-l2JJHEW1lToNnJzxe">via GIPHY</a></p>
 
+
+const loaderSource = ['pupswing.gif',
+'MrBeanTime.gif',
+'mouseSwing.gif',
+'dancingOrange.gif',
+'dogFromUpFetch.gif',
+'runningMuppet.gif',
+'Sloth.gif',
+'snowWhite.gif',
+'monstersInc.gif',
+'giraffe.gif',
+'dory.gif',
+'dogFromUp.gif',
+'minionsGru.gif',
+'minions.gif',
+'molang.gif',
+'catMusic.gif', 
+'socks.gif'];
+
+let loaderLength = loaderSource.length
+let loaderOrder = [];
+let loaderCount = 0;
+let randomOrderSet = false;
+
+function setLoaderOrder() {
+    for (let i = 0; i < loaderLength; i++) {
+        loaderOrder.push(i);
+    }
+
+    loaderOrder = randomShuffle(loaderOrder);
+
+}
+
 function setRandomLoader() {
-    let loaderSource = ['pupswing.gif',
-                        'MrBeanTime.gif',
-                        'mouseSwing.gif',
-                        'dancingOrange.gif',
-                        'dogFromUpFetch.gif',
-                        'runningMuppet.gif',
-                        'Sloth.gif',
-                        'snowWhite.gif',
-                        'monstersInc.gif',
-                        'giraffe.gif',
-                        'dory.gif',
-                        'dogFromUp.gif',
-                        'minionsGru.gif',
-                        'minions.gif',
-                        'molang.gif',
-                        'catMusic.gif', 
-                        'socks.gif']
-    //loaderSource = ['pupswing.gif'] // Uncomment to test a single GIF.
-    let currentLoader = randomChoices(loaderSource, 1);
-    console.log(currentLoader[0])
+
+    if (!randomOrderSet){
+        setLoaderOrder()
+        randomOrderSet = true;
+    }
+    let currentLoader = loaderSource[loaderOrder[loaderCount%loaderLength]];
+    //console.log(currentLoader)
     let loaderImage = document.getElementById("loaderImage");
-    loaderImage.src = 'Gifs/'+currentLoader[0];
-    //loaderImage.src = 'https://media1.giphy.com/media/W7Je6BJvv5CkoRqB9Y/giphy.gif?cid=ecf05e47a91af53226112fbf28fac21baad2444c9057e0f8&rid=giphy.gif&ct=g'
+    loaderImage.src = 'Gifs/'+currentLoader;
+    loaderCount++;
 }
 
 function showLoader() {
     let loader = document.getElementById("loader");
     let overlay = document.getElementById("overlay");
     let loaderImage = document.getElementById("loaderImage");
-    //loaderImage.src = 'runningMuppet.gif'
     overlay.style.display = "inline";
     loader.style.display = "inline";
 }
@@ -65,5 +84,23 @@ function hideLoader() {
     let overlay = document.getElementById("overlay");
     loader.style.display = "none";
     overlay.style.display = "none";
+}
+
+//function to perform a random shuffle of an array. See https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+function randomShuffle(array) {
+    let currentIndex = array.length,  randomIndex;
+
+    // While there remain elements to shuffle.
+    while (currentIndex != 0) {
+
+        // Pick a remaining element.
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex], array[currentIndex]];
+    }
+    return array
 }
 

@@ -28,7 +28,7 @@
             let timeLimitSilver = 120; // the time limit (in seconds)
             let timeLimitGold = 120; // the time limit (in seconds)
             let timeLimitPlatinum = 120; // the time limit (in seconds)
-
+            
             //does this as soon as the window loads
             window.onload = (event) => {
                     addClickListeners();
@@ -157,6 +157,8 @@
                 testOrder = randomShuffle(testOrder)
             }
 
+            
+
             function deleteResultsTable() {
                 // deletes all but the first row of the results table
                 let table = document.getElementById("marks-table")
@@ -168,6 +170,12 @@
             }
 
             function callback_goButton() {
+
+                let t0 = new Date();
+                setRandomLoader() // get the 'making your test' gif ready so it's local and ready to show when needed.
+                let t1 = new Date()
+                let timeIn_ms = Math.round((t1.getTime()-t0.getTime()));
+                console.log('time to getLoader = ' + timeIn_ms + 'ms')
 
                 // disable the Go button
                 document.getElementById('goButton').disabled = true;
@@ -284,8 +292,13 @@
 
                     timerEnd = new Date();
 
-                    setRandomLoader()
+                    //setRandomLoader()
+                    let t0 = new Date();
                     showLoader();
+                    let t1 = new Date()
+                    let timeIn_ms = Math.round((t1.getTime()-t0.getTime()));
+                    console.log('time to showLoader = ' + timeIn_ms + 'ms')
+                    
                     sleep(5000).then(() => { hideLoader(); });
                     sleep(5010).then(() => {markTest(); });
                     sleep(5020).then(() => {showResults(); });
