@@ -6,15 +6,23 @@
         <link rel="stylesheet" href="style.css">
         <link rel="stylesheet" href="loaders.css">
         <meta name="viewport" content="width=device-width">
+
+         <!--JavaScript Links-->
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <script src="confetti.js"></script>
+        <script src="loaders.js"></script> 
+        <script src="functions.js"></script>
+        <script src="getQuestions.js"></script>
         
         <script>
 
             // define variables with script-wide scope
             let testLevel; // sring. The test level currently selected (bronze, silver, gold, platinum). Gets set on button press.
-            let testCountAvailable; // integer. The number of tests availble for the curently selected level.
-            let testOrder = []; //an array of integers that is randomised when go button is pressed to give the order of tests e.g. [2,1,3,0]
+            let stages; // an array of the stages from which to get the questions from 
             let numQuestions; // the numer of questions for the current test
-            let tryNumber = 0; //integer. The number of goes a user has had at the given test. Used to pick which of the availble tests to run.  See testOrder variable. Starts at 0 to make getting item from a list easier
+            let activeTest = []; // the test to draw the questions and answers from
             let currentQuestionNum = -1; //the current number of the question being displayed. Starts at 0 to make getting item from a list easier. -1 indicates no current question.
             let userAnswers = []; // The user submitted answers
             let answers = []; // the real answers
@@ -88,7 +96,6 @@
                     deleteResultsTable()
                     let marksTable = document.getElementById("marks-table-container"); //the marks table
                     marksTable.style.display = 'none' // hide it
-                
                 }
                 // make border on button to make it look selected
                 switch (testLevel) {
@@ -115,8 +122,67 @@
                     default:
                         changeBorderWidth(0);
                 }
-                setTestCountAvailable(testLevel);
-                setTestOrder(testCountAvailable);
+            }
+
+            function setActiveTest(testLevel) {
+                stages = []; // reset the stages to get questions from
+                let stages_a = []; // for intermediate calcs
+                let stages_b = []; // for intermediate calcs
+                switch (testLevel) {
+                    case 'bronze':
+                    stages = [131, 131, 131, 131, 131, 131, 131, 131, 131, 131, 
+                            131, 131, 131, 131, 131, 131, 131, 131, 131, 131] // stage 131 is the 2-10s (multiply and divide),  
+                    break;
+
+                    case 'silver':
+                    stages_a = [202,203,205,206,208,209,210,211,// 11s x and /, 12s x and /, squares, square root, all x, all /, 
+                                229, 230] // /10 or 100 and x10 or 100
+                    stages_b = [ 213,214,215,216,217,218,219,220,
+                                221,222,223,224,225,226,227,228]; // 20s to 90s times tables / and x
+                    stages_b = randomSample(stages_b, 10); // pick 10 of of these stages at random
+                    stages = [].concat(stages_a, stages_b); // join together
+                    stages = randomShuffle(stages); // and shuffle     
+                    break;
+
+                    case 'gold':
+                    stages_a = [301,302,303,304,305,306,307,308,309,310,
+                                311,312,313,314,315,316,317,318,319,320,
+                                321,322,323,324,325,326,327,328,329,330];
+                    stages = randomSample(stages_a, 20); // pick 20 of of these stages at random
+                    stages = randomShuffle(stages)   // and shuffle         
+                    break;
+
+                    case 'platinum':
+                    stages_a = [401,402,403,404,405,406,407,408,409,410,
+                                411,412,413,414,415,416,417,418,419,420,
+                                421,422,423,424,425,426,427,428,429,430];
+                    stages = randomSample(stages_a, 20); // pick 20 of of these stages at random
+                    stages = randomShuffle(stages) // and shuffle
+                    break;
+                  }
+
+                  //get one question from each stage:
+                  let matchCount = 0;
+                  let num1_quests = [];
+                  let symbols = [];
+                  let num2_quests = [];
+
+                for (let i = 0; i < stages.length; i++) {
+                    let [num1_quest, symbol, num2_quest, ans] = getQuestions(1, stages[i], true); // one question from each stage, toughTest set to true to avoid 1x and /1 questions
+
+                    if (questionExists(num1_quest[0], symbol[0], num2_quest[0], 
+                    num1_quests, symbols, num2_quests)) { //questionExists(num1ToTest, symbolToTest, num2ToTest, num1, symbol, num2)
+                        matchCount++
+                        i--
+                        //console.log(num1_quest[0], symbol[0], num2_quest[0])
+                    } else {
+                        num1_quests.push(num1_quest[0]);
+                        num2_quests.push(num2_quest[0])
+                        symbols.push(symbol[0])
+                        activeTest[i] = [num1_quest, symbol, num2_quest, ans];
+                    }
+                }
+                //console.log(matchCount)
             }
 
             function  updateProgressDisplay() {
@@ -128,37 +194,7 @@
                     document.getElementById('progressDisplay').innerHTML = qNum + ' / ' + totalQ;
                 }
             }
-
-            function setTestCountAvailable(testLevel) {
-                switch (testLevel) {              
-                    case 'bronze':
-                        testCountAvailable = bronzeTest.length;
-                        break;
-
-                    case 'silver':
-                        testCountAvailable = silverTest.length;
-                        break;
-                    
-                    case 'gold':
-                        testCountAvailable = goldTest.length;
-                        break;
-
-                    case 'platinum':
-                        testCountAvailable = platinumTest.length;
-                        break;
-                }
-            }
-
-            function setTestOrder(testCountAvailable) {
-                testOrder = [];
-                for (let i = 0; i < testCountAvailable; i++) {
-                    testOrder.push(i);
-                }
-                testOrder = randomShuffle(testOrder)
-            }
-
-            
-
+        
             function deleteResultsTable() {
                 // deletes all but the first row of the results table
                 let table = document.getElementById("marks-table")
@@ -170,34 +206,29 @@
             }
 
             function callback_goButton() {
-
                 let t0 = new Date();
                 setRandomLoader() // get the 'making your test' gif ready so it's local and ready to show when needed.
-                let t1 = new Date()
+                let t1 = new Date();
                 let timeIn_ms = Math.round((t1.getTime()-t0.getTime()));
-                console.log('time to getLoader = ' + timeIn_ms + 'ms')
+                //console.log('time to getLoader = ' + timeIn_ms + 'ms')
 
                 // disable the Go button
                 document.getElementById('goButton').disabled = true;
 
                 // clear the table
-                deleteResultsTable()
+                deleteResultsTable();
                 let marksTable = document.getElementById("marks-table-container"); //the marks table
-                marksTable.style.display = 'none'
+                marksTable.style.display = 'none';
 
                 // Clear the answers and marks from previous go
                 userAnswers = [];
                 answers = [];
                 marks = [];
+                
+                // Get the questions here:
+                setActiveTest(testLevel);
 
-                // get test questions from the current level based on the random order and try number, we can call this the activeTest
-                activeTest = getActiveTest();
-                activeTest = randomShuffle(activeTest);
                 numQuestions = activeTest.length;
-
-                // increase try number by one
-                tryNumber++
-
                 // Make 'Submit' button and user input active
                 document.getElementById("submitButton").disabled = false;
                 document.getElementById('userAnswer').disabled = false;
@@ -207,57 +238,25 @@
                 timerStart = new Date();
                 // display the first question. 
                 currentQuestionNum = 0;
-                updateProgressDisplay()
-                displayQuestion(currentQuestionNum)
+                updateProgressDisplay();
+                displayQuestion(currentQuestionNum);
                 // All other question display (and marking of answers) is done via the 'submit' button callback function.  
             }
 
-            function getActiveTest() {
-                //makes the currentTestNumber loop so when the tries goes above the amount of tests available, it loops round again yay :)
-                let currentTestNumber = testOrder[testCountAvailable-((tryNumber%testCountAvailable)+1)] 
-                let currentTest
-                switch (testLevel) {              
-                    case 'bronze':
-                        currentTest = bronzeTest[currentTestNumber]
-                        break;
-
-                    case 'silver':
-                        currentTest = silverTest[currentTestNumber]
-                        break;
-                    
-                    case 'gold':
-                        currentTest = goldTest[currentTestNumber]
-                        break;
-
-                    case 'platinum':
-                        currentTest = platinumTest[currentTestNumber]
-                        break;
-                }  
-                return(currentTest)
-            }
-
-            function displayQuestion(QuestionNum) {
+            function displayQuestion(questionNum) {
                 // Get the question text and answers
-                let [num1, symbol, num2, ans] =  getQuestionText(QuestionNum);
-                // and display it
-                document.getElementById('question').innerHTML = num1 + ' ' + symbol + ' ' + num2;
-            }
-
-            function getQuestionText(QuestionNum) {
-                // Get the question text and answers
-                let [num1, symbol, num2, ans] =  activeTest[QuestionNum]
-                // identify special symbols and replace with unicode
-                switch (symbol) {
-                    case 'x':
-                        symbol = '\u00D7';
-                        break;
-                    case '/':
-                        symbol = '\u00F7';
-                        break;
+                let [num1, symbol, num2, ans] =  activeTest[questionNum];// getQuestionText(questionNum);
+                
+                if (stages[questionNum] == 301) {
+                    alert('Factors questions: \n\nSeparate each factor with a decimal point ');
                 }
 
-                return ([num1, symbol, num2, ans] );
+                if (stages[questionNum] == 424) {
+                    alert('Only give answer to 2 d.p where nessesary');
+                }
 
+                // and display it
+                document.getElementById('question').innerHTML = num1 + ' ' + symbol + ' ' + num2;
             }
 
             function clearQuestion() {
@@ -270,11 +269,12 @@
                 //clear the user answer
                 document.getElementById('userAnswer').value = '';
                 document.getElementById('userAnswer').focus(); // to keep focus on the user answer input
+                clearQuestion();
                 //increase currentQuestionNum
                 currentQuestionNum++
                 if (currentQuestionNum < numQuestions) {
-                    updateProgressDisplay()
-                    displayQuestion(currentQuestionNum)
+                    updateProgressDisplay();
+                    displayQuestion(currentQuestionNum);
                 } else { // there are no more questions and the test is complete, so mark it and show results
                     
                     // calculate the time taken
@@ -295,29 +295,21 @@
                     //setRandomLoader()
                     let t0 = new Date();
                     showLoader();
-                    let t1 = new Date()
+                    let t1 = new Date();
                     let timeIn_ms = Math.round((t1.getTime()-t0.getTime()));
-                    console.log('time to showLoader = ' + timeIn_ms + 'ms')
+                    //console.log('time to showLoader = ' + timeIn_ms + 'ms')
                     
                     sleep(5000).then(() => { hideLoader(); });
                     sleep(5010).then(() => {markTest(); });
                     sleep(5020).then(() => {showResults(); });
                     sleep(5030).then(() => {showConfetti(); });
-                    //markTest();// Mark Test
-
-                    // ******* Display spinning something for a few seconds saying 'Marking Test' for suspense! ********
-                    //showResults();
-                    // If results are all correct and time is under the limit then: 
-                    //if ((timeInSecs < timeLimit) && (totalMarks == numQuestions)) {
-                      //  makeConfetti()
-                   // }
                 }
             }
             
             function showConfetti() {
                 // If results are all correct and time is under the limit then: 
                 if ((timeInSecs < timeLimit) && (totalMarks == numQuestions)) {
-                        makeConfetti()
+                        makeConfetti();
                     }
             }
 
@@ -326,34 +318,34 @@
                 let colors = []
                 switch (testLevel) {
                     case 'bronze':
-                        colors = ['rgba(205, 173, 124,', 'rgba(214, 186, 145,', 'rgba(232, 213, 188,', 'rgba(205, 127, 50,', 'rgba(210, 140, 71,']
+                        colors = ['rgba(205, 173, 124,', 'rgba(214, 186, 145,', 'rgba(232, 213, 188,', 'rgba(205, 127, 50,', 'rgba(210, 140, 71,'];
                         break;
 
                     case 'silver':
-                        colors = ['rgba(192,192,192,', 'rgba(169,169,169,', 'rgba(200,200,200,']
+                        colors = ['rgba(192,192,192,', 'rgba(169,169,169,', 'rgba(200,200,200,'];
                         break;
                     
                     case 'gold':
-                        colors = ['rgba(192,192,10,', 'rgba(169,169,10,', 'rgba(200,200,10,']
+                        colors = ['rgba(192,192,10,', 'rgba(169,169,10,', 'rgba(200,200,10,'];
                         break;
 
                     case 'platinum':
-                        colors = ['rgba(192,192,192,', 'rgba(240,240,250,', 'rgba(200,200,220,']
+                        colors = ['rgba(192,192,192,', 'rgba(240,240,250,', 'rgba(200,200,220,'];
                         break;
                 }
-                confetti.setColor(colors)
+                confetti.setColor(colors);
                 
                 // for starting the confetti 
                 const start = () => {
                     setTimeout(function() {
-                        confetti.start()
+                        confetti.start();
                     }, 0); // 1000 is time that after 1 second start the confetti ( 1000 = 1 sec)
                 };
 
                 //  for stopping the confetti 
                 const stop = () => {
                     setTimeout(function() {
-                        confetti.stop()
+                        confetti.stop();
                     }, 5000); // 5000 is time that after 5 second stop the confetti ( 5000 = 5 sec)
                 };
 
@@ -395,21 +387,21 @@
                     cell1.innerHTML = i + 1;
                     
                     // the question
-                    let [num1, symbol, num2, ans] =  getQuestionText(i);
+                    let [num1, symbol, num2, ans] =  activeTest[i]; //getQuestionText(i);
                     cell2.innerHTML = num1 + ' ' + symbol + ' ' + num2;;
 
                     // the user answer
-                    cell3.innerHTML = userAnswers[i]
+                    cell3.innerHTML = userAnswers[i];
                     cell1.style.fontWeight = 'bold';
 
                     // the mark box (turns red or green)
                     let markBox = document.createElement("INPUT");
-                    markBox.setAttribute("class","table-element form-control")
-                    markBox.setAttribute("disable", true)
+                    markBox.setAttribute("class","table-element form-control");
+                    markBox.setAttribute("disable", true);
                     if (marks[i] == true) {
-                        markBox.setAttribute("style","background-color: #43b516;")
+                        markBox.setAttribute("style","background-color: #43b516;");
                     } else {
-                        markBox.setAttribute("style","background-color: #d10e00;")
+                        markBox.setAttribute("style","background-color: #d10e00;");
                     }
                     cell4.appendChild(markBox);
                     // probably better to populate as we go as no need to keep track of ids. 
@@ -430,55 +422,35 @@
                 for (let i in marks) {
                     totalMarks += marks[i];
                 }
-                cell4.innerHTML = totalMarks + ' / ' + numQuestions
-
+                cell4.innerHTML = totalMarks + ' / ' + numQuestions;
             }
 
             function markTest() {
-                // First retrieve the true answers
+               // First retrieve the true answers
                 for (let i = 0; i < numQuestions; i++) {
                     let ans =  activeTest[i][3];
                     answers.push(ans);
                 } 
                 // and compare with the user answers
                 for (let i = 0; i < numQuestions; i++) {
-                    if (userAnswers[i] == answers[i]) {
-                        marks.push(1)
-                    } else {
-                        marks.push(0)
+                    // Get the question text and answers
+                    let [num1, symbol, num2, ans] =  activeTest[i]; //getQuestionText(i);
+                    
+                    // first, is it a factors question?
+                    let factorsQuestion = false;
+                                       
+                    if (stages[i] == 301) {
+                        factorsQuestion = true;
                     }
 
+                    if (factorsQuestion) {
+                        marks.push(markFactorsQuestion(userAnswers[i], answers[i][0]))
+                    } else if (userAnswers[i] == answers[i]) {
+                        marks.push(1);
+                    } else {
+                        marks.push(0);
+                    }
                 } 
-            }
-
-            //function to perform a random shuffle of an array. See https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-            function randomShuffle(array) {
-                let currentIndex = array.length,  randomIndex;
-
-                // While there remain elements to shuffle.
-                while (currentIndex != 0) {
-
-                    // Pick a remaining element.
-                    randomIndex = Math.floor(Math.random() * currentIndex);
-                    currentIndex--;
-
-                    // And swap it with the current element.
-                    [array[currentIndex], array[randomIndex]] = [
-                    array[randomIndex], array[currentIndex]];
-                }
-                return array
-            }
-
-            // funtion to pick a random sample of k items from an array, item can be repeated
-            function randomChoices(array, k) {
-                let newArray = [];
-
-                for (let i = 0; i < k; i++){
-                    randomIndex = Math.floor(Math.random() * array.length)
-                    newArray.push(array[randomIndex])
-                }
-
-                return newArray
             }
 
             //changes border width of selected stage
@@ -489,101 +461,13 @@
                 }
                 document.getElementById(buttonIds[levelIDNumber]).style.borderWidth = '3px';
             }
-
-            /*  Sample Tests
-            Prepare the test questions and answers here.
-            Questions are given in a group of four items, i.e [num1, operator, num2, answer] for each question.
-            Special operator symbols are converted to unicode symbols as below:
-            operator x = '\u00D7' (the unicode 'multiply' symbol)
-                    / = '\u00F7' (is the unicode 'divide' symbol)
-            The questions from each test are displayed to the user in a random order.*/
-           
-
-            let bronzeTest = [];
-            
-
-            bronzeTest[0] = [
-                    ['81','/','9',    1],
-                    ['6','x','7',    1],
-                    ['8','x','4',   1],
-                    ['36','/','6',   1],
-                    ]
-            
-            bronzeTest[1] = [
-                    ['b1/3','x','1/3',    1,],
-                    ['b1/3','x','2/3',    1],
-                    ['b1/3','x','3/3',    1]
-                    ]
-
-            bronzeTest[2] = [
-                    ['b2/3','x','1/3',    1],
-                    ['b2/3','x','2/3',    1],
-                    ['b2/3','x','3/3',   1]
-                    ]
-
-            bronzeTest[3] = [
-                    ['b3/3','x','1/3',    1],
-                    ['b3/3','x','2/3',    1],
-                    ['b3/3','x','3/3',    1]
-                    ]
-            
-            let silverTest = [];
-
-            silverTest[0] = [
-                    ['s0/1','x','1/4',    1],
-                    ['s0/1','x','2/4',    1],
-                    ['s0/1','x','3/4',    1],
-                    ['s0/1','x','4/4',    1]
-                    ]
-                    
-
-            silverTest[1] = [
-                    ['s1/1','x','1/4',    1],
-                    ['s1/1','x','2/4',    1],
-                    ['s1/1','x','3/4',    1],
-                    ['s1/1','x','4/4',    1]
-                    ]
-            let goldTest = [];
-
-            goldTest[0] = [
-                    ['g0/0','x','1/2',    1],
-                    ['g0/0','x','2/2',    1],
-                    ]
-                
-            let platinumTest = [];
-
-            platinumTest[0] = [
-                    ['p0/2','x','1/2',    1],
-                    ['p0/2','x','2/2',    1],
-                    ]
-
-            platinumTest[1] = [
-                    ['p1/2','x','1/2',    1],
-                    ['p1/2','x','2/2',    1],
-                    ]
-
-            platinumTest[2] = [
-                    ['p2/2','x','1/4',    1],
-                    ['p2/2','x','2/4',    1],
-                    ['p2/2','x','3/4',    1],
-                    ['p2/2','x','4/4',    1],
-                    ]
-                
-            /*
-            '\u00D7' is the unicode 'multiply' symbol
-            '\u00F7' is the unicode 'divide' symbol
-            '\u00B3' Cubed symbol
-            '\u221B' Cube root symbol
-            '\u00BD' Half symbol*/
-
-            
         </script>
 
     </head>
 
     <div class="overlay" id="overlay"></div>
     <div class="loader" id="loader"> 
-        <img src="hand-tapping.gif" width="300px" height="auto" id="loaderImage">
+        <img src="" width="300px" height="auto" id="loaderImage">
         <p style="color: white; font-size: xx-large;"><strong>Marking your test...</strong></p>
     </div>
 
@@ -699,13 +583,5 @@
             </div>
         </div>
     </div>
-
-    
-    <!--JavaScript Links-->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    <script src="confetti.js"></script>
-    <script src="loaders.js"></script> 
 </body>
 </html>
