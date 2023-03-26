@@ -42,7 +42,9 @@
                     addClickListeners();
                     let buttonSubmit = document.getElementById("submitButton");
                     buttonSubmit.disabled = true;
-                    changeLevel('bronze');
+                    // disable the Go button
+                    document.getElementById('goButton').disabled = true;
+                    //changeLevel('bronze');
             }
 
             //called when window loads
