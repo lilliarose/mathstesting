@@ -15,9 +15,7 @@
                     buttonMarkIt.disabled = true;
                     let buttonGo = document.getElementById("goButton");
                     buttonGo.disabled = true;
-                    let dropdownStages =  document.getElementById("dropdown-menu");
-                    dropdownStages.disabled = true;
-                    //changeLevel('bronze');                   
+                    changeLevel('bronze');                   
             }
             
             //define variables with script-wide scope
@@ -251,10 +249,7 @@
             function changeLevel (newLevel) {
                 if (currentLevel == newLevel) {
                     return; // no need to change anything
-                }
-                
-                let dropdownStages =  document.getElementById("dropdown-menu");
-                dropdownStages.disabled = false;              
+                }              
 
                 let levelID = [];
                 let levelText = [];
